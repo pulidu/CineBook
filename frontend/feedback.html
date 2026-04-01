@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineBook - Movie Reviews</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .rating-star { font-size: 2rem; cursor: pointer; color: #4b5563; transition: all 0.2s; }
+        .rating-star:hover, .rating-star.active { color: #fbbf24; transform: scale(1.1); }
+        .review-card { background: #1e293b; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; transition: all 0.3s ease; }
+        .review-card:hover { transform: translateX(5px); background: #2d3a4e; }
+        .reviewer-avatar { width: 50px; height: 50px; background: linear-gradient(135deg, #f97316, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
+        .movie-selector { background: #1e293b; border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .rating-summary { background: #1e293b; border-radius: 1rem; padding: 1.5rem; text-align: center; margin-bottom: 2rem; }
+        .big-rating { font-size: 3rem; font-weight: 800; color: #f97316; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="gradient-text"><i class="fas fa-film me-2"></i>CINEBOOK</h3>
+        </div>
+
+        <ul class="list-unstyled components" id="sidebarMenu">
+            <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="movies.html"><i class="fas fa-film"></i> Movies</a></li>
+            <li><a href="my-bookings.html"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
+            <li><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a></li>
+            <li><a href="feedback.html"><i class="fas fa-star"></i> Feedback</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="#" class="logout-btn text-danger text-decoration-none">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+        <button type="button" id="sidebarCollapse" class="btn">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <nav class="navbar navbar-expand-lg py-3 d-md-none">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html" style="color:#f97316;">
+                    <i class="fas fa-film me-2"></i>CINE BOOK</a>
+            </div>
+        </nav>
+
+        <div class="container py-4">
+    <div class="row"><div class="col-lg-8 mx-auto"><div class="text-center mb-4"><h1 class="display-5 fw-bold"><i class="fas fa-star text-warning me-2"></i>Movie Reviews</h1><p class="text-white-50">Share your movie experience and read what others think</p></div>
+
+        <div class="movie-selector"><label class="form-label fw-bold"><i class="fas fa-film text-primary me-2"></i>Select Movie</label><select id="movieSelect" class="form-select"><option value="">Choose a movie to review</option></select></div>
+
+        <div id="ratingSummary" class="rating-summary" style="display:none;"><div class="row"><div class="col-md-4"><div class="big-rating" id="avgRating">0.0</div><div id="starRating"></div><small id="ratingCount" class="text-white-50">0 reviews</small></div><div class="col-md-8"><div id="ratingBars"></div></div></div></div>
+
+        <div class="card p-4 mb-4" id="reviewForm" style="display:none;"><h5><i class="fas fa-edit text-primary me-2"></i>Write a Review</h5><div class="rating-input text-center" id="ratingStars"><i class="fas fa-star rating-star" data-rating="1"></i><i class="fas fa-star rating-star" data-rating="2"></i><i class="fas fa-star rating-star" data-rating="3"></i><i class="fas fa-star rating-star" data-rating="4"></i><i class="fas fa-star rating-star" data-rating="5"></i></div>
+            <textarea id="reviewComment" class="form-control mb-3" rows="4" placeholder="Share your thoughts about the movie..."></textarea>
+            <button id="submitReviewBtn" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i>Submit Review</button>
+            <div id="myReviewInfo" class="mt-3 text-center text-white-50 small"></div></div>
+
+        <h5><i class="fas fa-comments text-primary me-2"></i>What Others Say</h5>
+        <div id="reviewsList"><div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Loading reviews...</p></div></div>
+    </div></div>
+</div>
+
+<div class="toast-container"></div>
+<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+
+</div>
+</div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+    // Adjust sidebar based on role
+    $(document).ready(function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.role === 'ADMIN') {
+            $('#sidebar .sidebar-header h3').html('<i class="fas fa-crown me-2"></i>ADMIN PANEL');
+            $('#sidebarMenu').html(`
+                <li><a href="admin-dashboard.html"><i class="fas fa-chart-line"></i> Overview</a></li>
+                <li><a href="manage-users.html"><i class="fas fa-users"></i> Manage Users</a></li>
+                <li><a href="movies.html"><i class="fas fa-film"></i> Manage Movies</a></li>
+                <li><a href="my-bookings.html"><i class="fas fa-ticket-alt"></i> All Bookings</a></li>
+                <li><a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a></li>
+            `);
+        }
+    });
+</script>
+
+<script>
+    let movies = [], selectedRating = 0, currentMovieId = null, userReview = null;
+
+    if (!isLoggedIn()) { showToast('Please login to submit reviews', 'warning'); setTimeout(() => { window.location.href = 'login.html'; }, 1500); }
+
+    function loadMovies() {
+        API.movies.getAll(function(error, data) {
+            if (!error) { movies = data; $('#movieSelect').html('<option value="">-- Select a movie --</option>' + movies.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('')); }
+        });
+    }
+
+    function loadReviews(movieId) {
+        API.feedback.getByMovie(movieId, function(error, reviews) {
+            if (error) { $('#reviewsList').html('<div class="text-center text-danger">Failed to load reviews</div>'); return; }
+            displayReviews(reviews);
+            if (reviews.length) {
+                let avg = reviews.reduce((s,r)=>s+r.rating,0)/reviews.length, counts=[0,0,0,0,0];
+                reviews.forEach(r=>counts[r.rating-1]++);
+                $('#avgRating').text(avg.toFixed(1));
+                $('#starRating').html(renderStars(avg));
+                $('#ratingCount').text(`${reviews.length} reviews`);
+                let barsHtml = '';
+                for (let i=5;i>=1;i--) { let p = (counts[i-1]/reviews.length)*100; barsHtml += `<div class="d-flex align-items-center mb-2"><span class="text-warning me-2" style="width:30px;">${i}★</span><div class="flex-grow-1 bg-secondary rounded" style="height:8px;"><div class="bg-warning rounded" style="width:${p}%;height:8px;"></div></div><span class="text-white-50 ms-2">${counts[i-1]}</span></div>`; }
+                $('#ratingBars').html(barsHtml);
+                $('#ratingSummary').show();
+            } else $('#ratingSummary').hide();
+
+            API.feedback.getUserFeedback(movieId, function(err, review) {
+                userReview = review;
+                if (userReview) { $('#myReviewInfo').html(`<i class="fas fa-check-circle text-success"></i> You rated ${userReview.rating}★: "${userReview.comment}"`); selectedRating = userReview.rating; updateStars(selectedRating); $('#reviewComment').val(userReview.comment); $('#submitReviewBtn').html('<i class="fas fa-edit me-2"></i>Update Review'); }
+                else { $('#myReviewInfo').html(''); selectedRating = 0; updateStars(0); $('#reviewComment').val(''); $('#submitReviewBtn').html('<i class="fas fa-paper-plane me-2"></i>Submit Review'); }
+            });
+        });
+    }
+
+    function displayReviews(reviews) {
+        if (!reviews.length) { $('#reviewsList').html('<div class="text-center py-5"><i class="fas fa-star fa-3x text-secondary"></i><h5 class="mt-3">No reviews yet</h5><p class="text-white-50">Be the first to review!</p></div>'); return; }
+        $('#reviewsList').html(reviews.map(r => `<div class="review-card"><div class="d-flex gap-3"><div class="reviewer-avatar">${r.userName.charAt(0).toUpperCase()}</div><div><div class="d-flex justify-content-between"><div><strong class="text-white">${escapeHtml(r.userName)}</strong><div class="text-warning small">${renderStars(r.rating)}</div></div><small class="text-white-50">${formatDate(r.createdDate)}</small></div><p class="text-white-50 mt-2 mb-0">${escapeHtml(r.comment)}</p></div></div></div>`).join(''));
+    }
+
+    function updateStars(rating) { $('.rating-star').each(function() { let star = parseInt($(this).data('rating')); if (star <= rating) $(this).addClass('active'); else $(this).removeClass('active'); }); }
+
+    $('#movieSelect').on('change', function() {
+        currentMovieId = parseInt($(this).val());
+        if (currentMovieId) { $('#reviewForm').show(); loadReviews(currentMovieId); }
+        else { $('#reviewForm').hide(); $('#ratingSummary').hide(); $('#reviewsList').html('<div class="text-center text-white-50 py-5">Select a movie to see reviews</div>'); }
+    });
+
+    $('.rating-star').on('click', function() { selectedRating = parseInt($(this).data('rating')); updateStars(selectedRating); });
+
+    $('#submitReviewBtn').on('click', function() {
+        if (!currentMovieId) { showToast('Please select a movie', 'warning'); return; }
+        if (!selectedRating) { showToast('Please select a rating', 'warning'); return; }
+        let comment = $('#reviewComment').val();
+        if (!comment.trim()) { showToast('Please write a review', 'warning'); return; }
+        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Submitting...').prop('disabled', true);
+        let method = userReview ? () => API.feedback.update(userReview.id, { movieId: currentMovieId, rating: selectedRating, comment }, callback) : () => API.feedback.submit({ movieId: currentMovieId, rating: selectedRating, comment }, callback);
+        function callback(error) {
+            if (error) showToast(error.message || 'Failed to submit', 'error');
+            else { showToast(userReview ? 'Review updated!' : 'Thank you for your review!', 'success'); loadReviews(currentMovieId); }
+            btn.html(orig).prop('disabled', false);
+        }
+        method();
+    });
+
+    loadMovies();
+</script>
+</body>
+</html>

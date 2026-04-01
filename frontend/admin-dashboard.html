@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineBook - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .admin-card { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 1rem; padding: 1.5rem; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.05); }
+        .admin-card:hover { transform: translateY(-5px); }
+        .admin-icon { width: 50px; height: 50px; background: rgba(249,115,22,0.2); border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #f97316; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; }
+        .quick-action-btn { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 1rem; color: white; transition: all 0.3s ease; text-align: center; cursor: pointer; }
+        .quick-action-btn:hover { background: #f97316; transform: translateY(-3px); }
+        .chart-container { background: #1e293b; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .movie-list-item { background: #1e293b; border-radius: 0.75rem; padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+        .popularity-bar { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+        .popularity-fill { height: 100%; background: linear-gradient(90deg, #f97316, #dc2626); border-radius: 3px; }
+        .feedback-item { background: #1e293b; border-radius: 0.75rem; padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="gradient-text"><i class="fas fa-crown me-2"></i>ADMIN PANEL</h3>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li>
+                <a href="admin-dashboard.html">
+                    <i class="fas fa-chart-line"></i> Overview
+                </a>
+            </li>
+            <li>
+                <a href="manage-users.html">
+                    <i class="fas fa-users"></i> Manage Users
+                </a>
+            </li>
+            <li>
+                <a href="movies.html">
+                    <i class="fas fa-film"></i> Manage Movies
+                </a>
+            </li>
+            <li>
+                <a href="my-bookings.html">
+                    <i class="fas fa-ticket-alt"></i> All Bookings
+                </a>
+            </li>
+            <li>
+                <a href="payments.html">
+                    <i class="fas fa-money-bill-wave"></i> Payments
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="#" class="logout-btn text-danger text-decoration-none">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+        <button type="button" id="sidebarCollapse" class="btn">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <nav class="navbar navbar-expand-lg py-3 d-md-none">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html" style="color:#f97316;">
+                    <i class="fas fa-film me-2"></i>CINE BOOK</a>
+            </div>
+        </nav>
+
+        <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h1 class="display-5 fw-bold"><i class="fas fa-crown text-warning me-2"></i>Admin Dashboard</h1><p class="text-white-50">Manage movies, shows, and monitor system performance</p></div>
+        <div><i class="fas fa-chart-line" style="font-size: 3rem; color: #f97316;"></i></div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="admin-card"><div class="admin-icon mb-2"><i class="fas fa-users"></i></div><h3 class="mb-0" id="totalUsers">0</h3><p class="text-white-50 mb-0">Total Users</p></div>
+        <div class="admin-card"><div class="admin-icon mb-2"><i class="fas fa-film"></i></div><h3 class="mb-0" id="totalMovies">0</h3><p class="text-white-50 mb-0">Total Movies</p></div>
+        <div class="admin-card"><div class="admin-icon mb-2"><i class="fas fa-calendar-alt"></i></div><h3 class="mb-0" id="totalShows">0</h3><p class="text-white-50 mb-0">Total Shows</p></div>
+        <div class="admin-card"><div class="admin-icon mb-2"><i class="fas fa-ticket-alt"></i></div><h3 class="mb-0" id="totalBookings">0</h3><p class="text-white-50 mb-0">Total Bookings</p></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8"><div class="chart-container"><div class="d-flex justify-content-between mb-3"><h5><i class="fas fa-chart-line text-primary me-2"></i>Revenue Overview</h5><select id="revenuePeriod" class="form-select form-select-sm" style="width: auto;"><option value="6">Last 6 Months</option><option value="12">Last 12 Months</option></select></div><canvas id="revenueChart" height="250"></canvas></div></div>
+        <div class="col-lg-4"><div class="chart-container h-100"><h5><i class="fas fa-money-bill-wave text-success me-2"></i>Total Revenue</h5><div class="text-center mt-4"><i class="fas fa-cash-stack" style="font-size: 3rem; color: #22c55e;"></i><h2 class="text-success mt-2" id="totalRevenue">LKR 0</h2><p class="text-white-50">All time revenue</p></div><div class="mt-3"><div class="d-flex justify-content-between"><span class="text-white-50">This Month</span><span class="text-white" id="monthRevenue">LKR 0</span></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Last Month</span><span class="text-white" id="lastMonthRevenue">LKR 0</span></div></div></div></div>
+    </div>
+
+    <div class="quick-actions-grid">
+        <div class="quick-action-btn" data-bs-toggle="modal" data-bs-target="#addMovieModal"><i class="fas fa-plus-circle fa-2x mb-2 d-block"></i><strong>Add Movie</strong></div>
+        <div class="quick-action-btn" data-bs-toggle="modal" data-bs-target="#addShowModal"><i class="fas fa-calendar-plus fa-2x mb-2 d-block"></i><strong>Add Show</strong></div>
+        <div class="quick-action-btn" onclick="location.href='movies.html'"><i class="fas fa-edit fa-2x mb-2 d-block"></i><strong>Manage Movies</strong></div>
+        <div class="quick-action-btn" onclick="location.href='my-bookings.html'"><i class="fas fa-search fa-2x mb-2 d-block"></i><strong>View All Bookings</strong></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6"><div class="chart-container"><h5><i class="fas fa-fire text-warning me-2"></i>Popular Movies</h5><div id="popularMoviesList"><div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div><p class="mt-2 text-white-50">Loading...</p></div></div></div></div>
+        <div class="col-md-6"><div class="chart-container"><h5><i class="fas fa-comments text-info me-2"></i>Recent Feedback</h5><div id="recentFeedbackList"><div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div><p class="mt-2 text-white-50">Loading...</p></div></div></div></div>
+    </div>
+</div>
+
+<!-- Add Movie Modal -->
+<!-- Add this style anywhere in your HTML (preferably inside <head>) -->
+<style>
+#addMovieModal input::placeholder,
+#addMovieModal textarea::placeholder {
+  color: white;
+  opacity: 1;
+}
+</style>
+
+<!-- Your Modal -->
+<div class="modal fade" id="addMovieModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5><i class="fas fa-film me-2 text-primary"></i>Add New Movie</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="addMovieForm">
+          <div class="row">
+
+            <div class="col-md-6 mb-3">
+              <label>Title *</label>
+              <input type="text" id="movieTitle" class="form-control"
+                     placeholder="Enter movie title"
+                     style="color:white;" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Duration (minutes) *</label>
+              <input type="number" id="movieDuration" class="form-control"
+                     placeholder="Enter duration"
+                     style="color:white;" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Genre</label>
+              <select id="movieGenre" class="form-select" style="color:white;">
+                <option>Action</option>
+                <option>Comedy</option>
+                <option>Drama</option>
+                <option>Sci-Fi</option>
+                <option>Horror</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Language</label>
+              <input type="text" id="movieLanguage" class="form-control"
+                     value="English"
+                     placeholder="Enter language"
+                     style="color:white;">
+            </div>
+
+            <div class="col-12 mb-3">
+              <label>Description</label>
+              <textarea id="movieDescription" class="form-control" rows="3"
+                        placeholder="Enter description"
+                        style="color:white;"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Poster URL</label>
+              <input type="text" id="moviePoster" class="form-control"
+                     placeholder="Enter poster URL"
+                     style="color:white;">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Trailer URL</label>
+              <input type="text" id="movieTrailer" class="form-control"
+                     placeholder="Enter trailer URL"
+                     style="color:white;">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Release Date</label>
+              <input type="datetime-local" id="movieReleaseDate"
+                     class="form-control"
+                     style="color:white;">
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveMovieBtn">
+          <i class="fas fa-save me-2"></i>Save Movie
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Show Modal -->
+<!-- Placeholder color fix (must be added once) -->
+<style>
+    #addShowModal input::placeholder {
+        color: white;
+        opacity: 1;
+    }
+</style>
+
+<div class="modal fade" id="addShowModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5><i class="fas fa-calendar-plus me-2 text-primary"></i>Add New Show</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="addShowForm">
+
+                    <div class="mb-3">
+                        <label>Movie *</label>
+                        <select id="showMovieId" class="form-select" style="color:white;" required></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Show Date & Time *</label>
+                        <input type="datetime-local" id="showDateTime"
+                               class="form-control"
+                               style="color:white;" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Show Time (Display)</label>
+                        <input type="text" id="showTimeDisplay"
+                               class="form-control"
+                               placeholder="Enter Time"
+                               style="color:white;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Price (LKR) *</label>
+                        <input type="number" id="showPrice"
+                               class="form-control"
+                               placeholder="Enter price"
+                               style="color:white;" required>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="saveShowBtn">
+                    <i class="fas fa-save me-2"></i>Save Show
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+</div>
+</div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script src="js/sidebar.js"></script>
+
+<script>
+    AOS.init({ duration: 800, once: true });
+    let revenueChart = null;
+
+    if (!isAdmin()) { showToast('Admin access required', 'error'); setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500); }
+
+    function loadMoviesForSelect() {
+        API.movies.getAll(function(error, movies) {
+            if (!error && movies) $('#showMovieId').html(movies.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join(''));
+        });
+    }
+
+    function loadDashboard() {
+        API.admin.getDashboard(function(error, data) {
+            if (error) { showToast('Failed to load dashboard', 'error'); return; }
+
+            $('#totalUsers').text(data.totalUsers || 0);
+            $('#totalMovies').text(data.totalMovies || 0);
+            $('#totalShows').text(data.totalShows || 0);
+            $('#totalBookings').text(data.totalBookings || 0);
+            $('#totalRevenue').html(formatCurrency(data.totalRevenue || 0));
+
+            if (data.revenueByMonth) {
+                let months = Object.keys(data.revenueByMonth), revenues = Object.values(data.revenueByMonth);
+                if (months.length >= 1) $('#monthRevenue').html(formatCurrency(revenues[revenues.length - 1] || 0));
+                if (months.length >= 2) $('#lastMonthRevenue').html(formatCurrency(revenues[revenues.length - 2] || 0));
+                if (revenueChart) revenueChart.destroy();
+                revenueChart = new Chart(document.getElementById('revenueChart'), {
+                    type: 'line', data: { labels: months, datasets: [{ label: 'Revenue (LKR)', data: revenues, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', tension: 0.4, fill: true }] },
+                    options: { responsive: true, plugins: { legend: { labels: { color: 'white' } }, tooltip: { callbacks: { label: (ctx) => 'LKR ' + ctx.raw.toLocaleString() } } }, scales: { y: { ticks: { color: 'white', callback: (v) => 'LKR ' + v.toLocaleString() }, grid: { color: '#334155' } }, x: { ticks: { color: 'white' }, grid: { color: '#334155' } } } }
+                });
+            }
+
+            $('#popularMoviesList').html(data.popularMovies?.length ? data.popularMovies.map(m => `
+                <div class="movie-list-item"><div class="d-flex justify-content-between"><div><strong class="text-white">${escapeHtml(m.title)}</strong><div class="text-warning small">${renderStars(m.rating || 0)}</div></div><span class="badge bg-success">${m.totalBookings || 0} bookings</span></div>
+                <div class="popularity-bar"><div class="popularity-fill" style="width: ${m.popularityScore || 0}%"></div></div><div class="d-flex justify-content-between mt-1"><span class="small text-white-50">Popularity Score</span><span class="small text-primary fw-bold">${(m.popularityScore || 0).toFixed(1)}%</span></div></div>
+            `).join('') : '<p class="text-white-50 text-center">No movies yet</p>');
+
+            $('#recentFeedbackList').html(data.recentFeedbacks?.length ? data.recentFeedbacks.slice(0, 5).map(f => `
+                <div class="feedback-item"><div class="d-flex justify-content-between"><div><strong class="text-white">${escapeHtml(f.userName)}</strong><div class="text-warning small">${renderStars(f.rating)}</div><p class="text-white-50 small mb-0 mt-1">"${f.comment.substring(0, 80)}${f.comment.length > 80 ? '...' : ''}"</p><small class="text-white-50">on ${f.movieTitle}</small></div><small class="text-white-50">${formatDate(f.createdDate)}</small></div></div>
+            `).join('') : '<p class="text-white-50 text-center">No feedback yet</p>');
+        });
+    }
+
+    $('#saveMovieBtn').on('click', function() {
+        let data = { title: $('#movieTitle').val(), duration: parseInt($('#movieDuration').val()), genre: $('#movieGenre').val(), language: $('#movieLanguage').val(), description: $('#movieDescription').val(), posterUrl: $('#moviePoster').val(), trailerUrl: $('#movieTrailer').val(), releaseDate: $('#movieReleaseDate').val() };
+        if (!data.title || !data.duration) { showToast('Please fill required fields', 'warning'); return; }
+        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+        API.movies.create(data, function(error) {
+            if (error) showToast(error.message || 'Failed to add movie', 'error');
+            else { showToast('Movie added successfully!', 'success'); bootstrap.Modal.getInstance(document.getElementById('addMovieModal')).hide(); $('#addMovieForm')[0].reset(); loadDashboard(); loadMoviesForSelect(); }
+            btn.html(orig).prop('disabled', false);
+        });
+    });
+
+    $('#saveShowBtn').on('click', function() {
+        let dt = $('#showDateTime').val(), data = { movieId: parseInt($('#showMovieId').val()), showDate: dt, showTime: $('#showTimeDisplay').val() || new Date(dt).toLocaleTimeString(), price: parseFloat($('#showPrice').val()) };
+        if (!data.movieId || !data.showDate || !data.price) { showToast('Please fill required fields', 'warning'); return; }
+        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+        API.shows.create(data, function(error) {
+            if (error) showToast(error.message || 'Failed to add show', 'error');
+            else { showToast('Show added successfully!', 'success'); bootstrap.Modal.getInstance(document.getElementById('addShowModal')).hide(); $('#addShowForm')[0].reset(); loadDashboard(); }
+            btn.html(orig).prop('disabled', false);
+        });
+    });
+
+    loadMoviesForSelect();
+    loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineBook - Select Seats</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .seat-grid { max-width: 800px; margin: 0 auto; overflow-x: auto; }
+        .seat-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .seat { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        @media (max-width: 768px) { .seat { width: 35px; height: 35px; } }
+        .seat-available { background: #22c55e; color: white; }
+        .seat-available:hover { background: #16a34a; transform: scale(1.05); }
+        .seat-locked { background: #f59e0b; color: white; cursor: wait; }
+        .seat-booked { background: #ef4444; color: white; cursor: not-allowed; opacity: 0.6; }
+        .seat-selected { background: #3b82f6; color: white; transform: scale(1.05); box-shadow: 0 0 0 2px white; }
+        .screen { background: linear-gradient(90deg, #334155, #1e293b, #334155); height: 60px; border-radius: 20px 20px 0 0; text-align: center; line-height: 60px; color: white; margin-bottom: 2rem; letter-spacing: 4px; }
+        .booking-summary { position: sticky; top: 100px; background: #1e293b; border-radius: 1rem; padding: 1.5rem; }
+        .timer { font-family: monospace; font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .expiring { animation: pulse 1s ease-in-out infinite; color: #ef4444; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg py-3">
+    <div class="container">
+        <a class="navbar-brand" href="index.html" style="color:#f97316;">
+            <i class="fas fa-film me-2"></i>CINE BOOK</a>
+        <div class="ms-auto d-flex gap-2" id="navButtons"></div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card p-4 bg-dark"><h4><i class="fas fa-chair me-2 text-primary"></i>Select Your Seats</h4><div class="screen">SCREEN</div><div id="seatGrid"><div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Loading seat layout...</p></div></div>
+                <div class="d-flex justify-content-center gap-4 mt-4"><div><span class="seat seat-available" style="width:30px;height:30px;display:inline-block;"></span> Available</div><div><span class="seat seat-selected" style="width:30px;height:30px;display:inline-block;"></span> Selected</div><div><span class="seat seat-locked" style="width:30px;height:30px;display:inline-block;"></span> Locked</div><div><span class="seat seat-booked" style="width:30px;height:30px;display:inline-block;"></span> Booked</div></div></div>
+        </div>
+        <div class="col-lg-4">
+            <div class="booking-summary"><h5><i class="fas fa-ticket-alt text-primary me-2"></i>Booking Summary</h5><div class="mb-3"><div class="d-flex justify-content-between"><span class="text-white-50">Movie:</span><strong id="movieTitle">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Date:</span><strong id="showDate">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Time:</span><strong id="showTime">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Price/seat:</span><strong id="price">LKR 0</strong></div></div><hr><div class="mb-3"><div class="d-flex justify-content-between"><span class="text-white-50">Selected Seats:</span><strong id="selectedSeats">None</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Quantity:</span><strong id="seatCount">0</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Total:</span><strong id="totalAmount" class="text-success fs-4">LKR 0</strong></div></div><hr><div class="text-center mb-3"><div class="timer" id="timer">05:00</div><small class="text-white-50">Time to complete booking</small></div>
+                <button id="lockBtn" class="btn btn-warning w-100 mb-2"><i class="fas fa-lock me-2"></i>Lock Seats (5 min)</button>
+                <button id="bookBtn" class="btn btn-primary w-100" disabled><i class="fas fa-check-circle me-2"></i>Confirm Booking</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+
+<script>
+    const showId = getUrlParam('showId'), movieId = getUrlParam('movieId');
+    let seats = [], selectedSeats = [], lockedSeats = [], price = 0, movieTitle = '', showDate = '', showTime = '', timerInterval = null;
+
+    if (!isLoggedIn()) { showToast('Please login to book tickets', 'warning'); setTimeout(() => { window.location.href = 'login.html'; }, 1000); }
+
+    function loadShowDetails() {
+        API.shows.getById(showId, function(error, show) {
+            if (error) return;
+            price = show.price; movieTitle = show.movieTitle; showDate = formatDate(show.showDate); showTime = show.showTime;
+            $('#movieTitle').text(movieTitle); $('#showDate').text(showDate); $('#showTime').text(showTime); $('#price').text(formatCurrency(price));
+        });
+    }
+
+    function loadSeats() {
+        API.bookings.getAvailableSeats(showId, function(error, data) {
+            if (error) { $('#seatGrid').html('<div class="text-center text-danger">Failed to load seats</div>'); return; }
+            seats = data; renderSeats();
+        });
+    }
+
+    function renderSeats() {
+    let rows = ['A','B','C','D','E','F','G','H','I','J'], html = '';
+    
+    // වැදගත්: seats variable එක Array එකක් බව තහවුරු කරගන්න
+    const seatData = (typeof seats !== 'undefined' && seats) ? seats : [];
+
+    rows.forEach(row => {
+        html += `<div class="seat-row"><div class="text-white-50 me-2 fw-bold">${row}</div>`;
+        for (let i = 1; i <= 10; i++) {
+            let seatNum = `${row}${i}`;
+            
+            // මෙතනදී 'seats' වෙනුවට ආරක්ෂිත 'seatData' භාවිතා කරන්න
+            let seat = seatData.find(s => s.seatNumber === seatNum);
+            
+            let seatClass = 'seat-available', status = 'AVAILABLE';
+            
+            if (seat) { 
+                if (seat.status === 'BOOKED') { 
+                    seatClass = 'seat-booked'; status = 'BOOKED'; 
+                } else if (seat.status === 'LOCKED') { 
+                    seatClass = 'seat-locked'; status = 'LOCKED'; 
+                } 
+            }
+            
+            if (selectedSeats.includes(seatNum)) seatClass = 'seat-selected';
+            
+            html += `<div class="seat ${seatClass}" data-seat="${seatNum}" data-status="${status}" onclick="selectSeat('${seatNum}','${status}')">${i}</div>`;
+        }
+        html += `</div>`;
+    });
+    $('#seatGrid').html(html);
+    updateSummary();
+}
+
+    function selectSeat(seatNum, status) {
+        if (status === 'BOOKED' || status === 'LOCKED') { showToast(`Seat ${seatNum} is ${status.toLowerCase()}`, 'warning'); return; }
+        let idx = selectedSeats.indexOf(seatNum);
+        if (idx === -1) { if (selectedSeats.length >= 10) { showToast('Maximum 10 seats per booking', 'warning'); return; } selectedSeats.push(seatNum); }
+        else selectedSeats.splice(idx, 1);
+        renderSeats();
+    }
+
+    function updateSummary() {
+        let count = selectedSeats.length, total = count * price;
+        $('#selectedSeats').text(selectedSeats.length ? selectedSeats.join(', ') : 'None');
+        $('#seatCount').text(count);
+        $('#totalAmount').text(formatCurrency(total));
+        $('#bookBtn').prop('disabled', count === 0 || lockedSeats.length === 0);
+        if (lockedSeats.length) $('#bookBtn').prop('disabled', !(selectedSeats.length === lockedSeats.length && selectedSeats.every(s => lockedSeats.includes(s))));
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        let timeLeft = 300;
+        timerInterval = setInterval(() => {
+            let minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60;
+            $('#timer').text(`${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`);
+            if (timeLeft <= 60) $('#timer').addClass('expiring');
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval); $('#timer').text('Expired');
+                showToast('Seat lock expired! Please select seats again.', 'warning');
+                lockedSeats = []; selectedSeats = []; $('#lockBtn').prop('disabled', false); $('#bookBtn').prop('disabled', true);
+                loadSeats();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    $('#lockBtn').on('click', function() {
+        if (!selectedSeats.length) { showToast('Please select seats first', 'warning'); return; }
+        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Locking...').prop('disabled', true);
+        API.bookings.lockSeats({ showId: parseInt(showId), seatNumbers: selectedSeats }, function(error) {
+            if (error) showToast(error.message || 'Failed to lock seats', 'error');
+            else { lockedSeats = [...selectedSeats]; showToast('Seats locked for 5 minutes!', 'success'); loadSeats(); startTimer(); $('#bookBtn').prop('disabled', false); $('#lockBtn').prop('disabled', true); }
+            btn.html(orig).prop('disabled', false);
+        });
+    });
+
+    $('#bookBtn').on('click', function() {
+        if (!selectedSeats.length || !lockedSeats.length) { showToast('Please lock seats first', 'warning'); return; }
+        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Processing Payment...').prop('disabled', true);
+        
+        API.bookings.create({ showId: parseInt(showId), seatNumbers: selectedSeats }, function(error, booking) {
+            if (error) {
+                showToast(error.message || 'Booking failed', 'error');
+                btn.html(orig).prop('disabled', false);
+            } else {
+                showToast('Booking created. Redirecting to PayPal...', 'info');
+                
+                // Call PayPal Create Order
+                $.ajax({
+                    url: API_BASE + '/api/bookings/' + booking.id + '/paypal/create',
+                    type: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                    success: function(response) {
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            showToast('Failed to get PayPal redirect URL', 'error');
+                            btn.html(orig).prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        showToast('PayPal initialization failed', 'error');
+                        btn.html(orig).prop('disabled', false);
+                    }
+                });
+            }
+        });
+    });
+
+    loadShowDetails();
+    loadSeats();
+</script>
+</body>
+</html>
