@@ -1,0 +1,207 @@
+/* ========================================
+   CineBook - Common Styles
+   ======================================== */
+
+:root {
+    --primary: #f97316;
+    --primary-dark: #ea580c;
+    --secondary: #dc2626;
+    --dark: #0f172a;
+    --darker: #0a0f1a;
+    --light: #f8fafc;
+    --gray: #334155;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
+    color: var(--light);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Typography */
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(95deg, var(--primary), var(--secondary));
+    border: none;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 50px;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    border-radius: 50px;
+    background: transparent;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Toast Container */
+.toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1100;
+}
+
+.toast {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* Loading Spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.spinner-overlay.active {
+    display: flex;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(249, 115, 22, 0.3);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    background: #0f172a;
+    border: 1px solid var(--gray);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: white;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    background: #0f172a;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    color: white;
+    outline: none;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+}
+
+/* Cards */
+.card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Pagination */
+.pagination .page-link {
+    background: #1e293b;
+    border-color: var(--gray);
+    color: white;
+}
+
+.pagination .page-link:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #334155;
+    color: #64748b;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-primary, .btn-outline-primary {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .form-control, .form-select {
+        padding: 0.5rem 0.75rem;
+    }
+}

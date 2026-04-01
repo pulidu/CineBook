@@ -1,0 +1,128 @@
+/* ========================================
+   CineBook - Sidebar Styles
+   ======================================== */
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 280px;
+    max-width: 280px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    transition: all 0.3s;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+}
+
+#sidebar.active {
+    margin-left: -280px;
+}
+
+#sidebar .sidebar-header {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#sidebar .sidebar-header h3 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+#sidebar ul.components {
+    padding: 1.5rem 0;
+}
+
+#sidebar ul li {
+    padding: 0.25rem 1rem;
+}
+
+#sidebar ul li a {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+#sidebar ul li a i {
+    margin-right: 15px;
+    font-size: 1.25rem;
+    width: 25px;
+    text-align: center;
+}
+
+#sidebar ul li a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#sidebar ul li.active > a {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+}
+
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Page Content */
+#content {
+    width: calc(100% - 280px);
+    margin-left: 280px;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+#content.active {
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Mobile Toggle */
+#sidebarCollapse {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -280px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+    #content {
+        width: 100%;
+        margin-left: 0;
+    }
+    #content.active {
+        margin-left: 280px;
+    }
+    #sidebarCollapse {
+        display: block;
+    }
+}
