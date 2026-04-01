@@ -17,4 +17,5 @@ public class DashboardResponse {
     private Map<String, Double> revenueByMonth;
     private List<MovieResponse> popularMovies;
     private List<FeedbackResponse> recentFeedbacks;
+    //
 }
