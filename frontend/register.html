@@ -68,13 +68,13 @@
         <h2 class="text-center gradient-text">Create Account</h2>
         <p class="text-center text-white-50 mb-4">Join the ultimate movie experience</p>
 
-        <div class="role-selector">
+        <!-- <div class="role-selector">
             <div class="role-option selected" data-role="CUSTOMER">
                 <i class="fas fa-user"></i>Customer
             </div>
             <div class="role-option" data-role="ADMIN">
                 <i class="fas fa-crown"></i>Admin
-            </div>
+            </div> -->
         </div>
 
         <form id="registerForm">
@@ -109,7 +109,7 @@
 <script src="js/common.js"></script>
 
 <script>
-    let selectedRole = 'CUSTOMER';
+    
 
     $('.role-option').on('click', function() {
         $('.role-option').removeClass('selected');
@@ -138,7 +138,7 @@
         $('#btnSpinner').removeClass('d-none');
         $('#registerBtn').prop('disabled', true);
 
-        API.auth.register({ name, email, password, role: selectedRole }, function(error, result) {
+        API.auth.register({ name, email, password  }, function(error, result) {
             $('#btnText').removeClass('d-none');
             $('#btnSpinner').addClass('d-none');
             $('#registerBtn').prop('disabled', false);

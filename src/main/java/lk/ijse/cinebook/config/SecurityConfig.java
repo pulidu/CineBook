@@ -24,7 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // Enable method-level security with @PreAuthorize
+//@EnableMethodSecurity  // Enable method-level security with @PreAuthorize
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -46,13 +46,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/shows/**").permitAll()
 
                         // Protected endpoints
-                        .requestMatchers("/api/bookings/**").authenticated()
-                        .requestMatchers("/api/feedback/**").authenticated()
+                        .requestMatchers("/api/bookings/**").permitAll()
+                        .requestMatchers("/api/feedback/**").permitAll()
 
                         // Admin endpoints - handled by @PreAuthorize
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                       // .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").permitAll()
 
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

@@ -20,7 +20,7 @@ const API = {
                         id: response.id,
                         name: response.name,
                         email: response.email,
-                        role: response.role
+                        role: response.role 
                     }));
                     if (callback) callback(null, response);
                 },

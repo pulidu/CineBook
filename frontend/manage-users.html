@@ -124,87 +124,173 @@
     AOS.init({ duration: 800, once: true });
 
     function loadUsers() {
-        showSpinner();
-        // Check if API.admin.getUsers exists, if not we might need to add it to api.js
-        if (!API.admin.getUsers) {
-            API.admin.getUsers = function(callback) {
-                $.ajax({
-                    url: API_BASE + '/api/admin/users',
-                    type: 'GET',
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
-                    success: function(response) { if (callback) callback(null, response); },
-                    error: function(xhr) { if (callback) callback(xhr.responseJSON, null); }
-                });
-            };
+
+        // Ensure API object exists (IMPORTANT)
+        window.API = window.API || {};
+        API.admin = API.admin || {};
+
+        // Safe fallback (avoid crash)
+        function safeHideSpinner() {
+            if (typeof hideSpinner === 'function') {
+                hideSpinner();
+            }
         }
 
-        if (!API.admin.updateRole) {
-            API.admin.updateRole = function(id, role, callback) {
-                $.ajax({
-                    url: API_BASE + '/api/admin/users/' + id + '/role?role=' + role,
-                    type: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
-                    success: function(response) { if (callback) callback(null, response); },
-                    error: function(xhr) { if (callback) callback(xhr.responseJSON, null); }
-                });
-            };
+        function safeShowToast(msg, type) {
+            if (typeof showToast === 'function') {
+                showToast(msg, type);
+            } else {
+                console.log(type + ": " + msg);
+                alert(msg);
+            }
         }
 
+        // ================= API: GET USERS =================
+        API.admin.getUsers = function(callback) {
+            $.ajax({
+                url: "http://localhost:8080/api/admin/users",
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                success: function(response) {
+                    console.log("API Response:", response); // DEBUG
+                    if (callback) callback(null, response);
+                },
+                error: function(xhr) {
+                    console.error("API Error:", xhr); // DEBUG
+                    if (callback) callback(xhr.responseJSON || { message: "Request failed" }, null);
+                }
+            });
+        };
+
+        // ================= API CALL =================
         API.admin.getUsers(function(error, users) {
-            hideSpinner();
+
+            safeHideSpinner();
+
             if (error) {
-                showToast('Failed to load users', 'error');
+                safeShowToast(error.message || 'Failed to load users', 'error');
                 return;
             }
 
-            $('#userCount').text(users.length);
+            // ✅ VERY IMPORTANT: handle different response formats
+            const userList = Array.isArray(users) ? users : (users.data || []);
+
+            console.log("Processed Users:", userList); // DEBUG
+
+            $('#userCount').text(userList.length);
+
             const body = $('#userTableBody');
             body.empty();
 
-            users.forEach(user => {
-                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-                const roleClass = user.role === 'ADMIN' ? 'role-admin' : 'role-customer';
-                
+            if (userList.length === 0) {
+                body.append('<tr><td colspan="5" class="text-center">No users found</td></tr>');
+                return;
+            }
+
+            userList.forEach(user => {
+
+                const name = user.name || "Unknown";
+                const email = user.email || "N/A";
+                const role = user.role || "CUSTOMER";
+
+                const initials = name.split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+
+                const roleClass = role === 'ADMIN' ? 'role-admin' : 'role-customer';
+
                 body.append(`
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="user-avatar">${initials}</div>
-                                <div>
-                                    <div class="fw-bold">${escapeHtml(user.name)}</div>
-                                    <small class="text-white-50">ID: #${user.id}</small>
-                                </div>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="user-avatar">${initials}</div>
+                            <div>
+                                <div class="fw-bold">${escapeHtml(name)}</div>
+                                <small class="text-white-50">ID: #${user.id}</small>
                             </div>
-                        </td>
-                        <td>${escapeHtml(user.email)}</td>
-                        <td><span class="role-badge ${roleClass}">${user.role}</span></td>
-                        <td>${user.registeredAt || 'N/A'}</td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    Change Role
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-dark">
-                                    <li><a class="dropdown-item" href="#" onclick="changeRole(${user.id}, 'ADMIN')">Set as ADMIN</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="changeRole(${user.id}, 'CUSTOMER')">Set as CUSTOMER</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                `);
+                        </div>
+                    </td>
+                    <td>${escapeHtml(email)}</td>
+                    <td><span class="role-badge ${roleClass}">${role}</span></td>
+                    <td>${user.registeredAt || 'N/A'}</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Change Role
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#" onclick="changeRole(${user.id}, 'ADMIN')">Set as ADMIN</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeRole(${user.id}, 'CUSTOMER')">Set as CUSTOMER</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            `);
             });
+
         });
     }
 
     function changeRole(userId, role) {
-        showSpinner();
-        API.admin.updateRole(userId, role, function(error) {
-            hideSpinner();
-            if (error) {
-                showToast(error.message || 'Failed to update role', 'error');
+
+        // Ensure API object exists
+        window.API = window.API || {};
+        API.admin = API.admin || {};
+
+        // Safe spinner (avoid crash)
+        if (typeof showSpinner === 'function') {
+            showSpinner();
+        }
+
+        // Safe toast
+        function safeToast(msg, type) {
+            if (typeof showToast === 'function') {
+                showToast(msg, type);
             } else {
-                showToast('User role updated successfully', 'success');
-                loadUsers();
+                console.log(type + ": " + msg);
+                alert(msg);
+            }
+        }
+
+        // Ensure updateRole exists
+        API.admin.updateRole = function(id, role, callback) {
+            $.ajax({
+                url: "http://localhost:8080/api/admin/users/" + id + "/role?role=" + role,
+                type: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                success: function(response) {
+                    console.log("Role updated:", response); // DEBUG
+                    callback && callback(null, response);
+                },
+                error: function(xhr) {
+                    console.error("Update role error:", xhr); // DEBUG
+                    callback && callback(xhr.responseJSON || { message: "Update failed" }, null);
+                }
+            });
+        };
+
+        // Call API
+        API.admin.updateRole(userId, role, function(error) {
+
+            if (typeof hideSpinner === 'function') {
+                hideSpinner();
+            }
+
+            if (error) {
+                safeToast(error.message || 'Failed to update role', 'error');
+            } else {
+                safeToast('User role updated successfully', 'success');
+
+                // Reload users safely
+                if (typeof loadUsers === 'function') {
+                    loadUsers();
+                }
             }
         });
     }

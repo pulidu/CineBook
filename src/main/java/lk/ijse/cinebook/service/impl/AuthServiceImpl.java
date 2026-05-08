@@ -40,8 +40,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         // Always set role to CUSTOMER for standard registration
-        user.setRole(Role.CUSTOMER);
-        log.info("Setting CUSTOMER role for user: {}", request.getEmail());
+//        user.setRole(Role.CUSTOMER);
+//        log.info("Setting CUSTOMER role for user: {}", request.getEmail());
 
         // Save user
         user = userRepository.save(user);

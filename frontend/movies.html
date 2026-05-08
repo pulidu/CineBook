@@ -3,138 +3,676 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineBook - Movies</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>CineBook - All Movies</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+
     <style>
-        .movie-card { background: #1e293b; border-radius: 1rem; overflow: hidden; transition: all 0.3s ease; cursor: pointer; }
-        .movie-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .movie-poster { height: 300px; background: linear-gradient(135deg, #334155, #1e293b); display: flex; align-items: center; justify-content: center; position: relative; }
-        .movie-rating { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.7); padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.875rem; color: #fbbf24; }
-        .search-section { background: #1e293b; border-radius: 1rem; padding: 1rem; margin-bottom: 2rem; }
-        .filter-chip { display: inline-flex; padding: 0.5rem 1rem; background: #334155; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; margin-right: 0.5rem; margin-bottom: 0.5rem; }
-        .filter-chip.active, .filter-chip:hover { background: #f97316; }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Inter',sans-serif;
+        }
+
+        body{
+            background:#020b24;
+            color:white;
+            overflow-x:hidden;
+        }
+
+        .layout{
+            display:flex;
+            min-height:100vh;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar{
+            width:270px;
+            background:#09132d;
+            border-right:1px solid rgba(255,255,255,0.05);
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            position:fixed;
+            left:0;
+            top:0;
+            bottom:0;
+        }
+
+        .logo{
+            padding:28px;
+            font-size:20px;
+            font-weight:800;
+            color:#ff6b00;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+        }
+
+        .menu{
+            padding:25px 0;
+        }
+
+        .menu a{
+            display:flex;
+            align-items:center;
+            gap:15px;
+            padding:18px 28px;
+            color:#94a3b8;
+            text-decoration:none;
+            transition:0.3s;
+            font-size:18px;
+        }
+
+        .menu a:hover,
+        .menu a.active{
+            background:rgba(255,255,255,0.03);
+            color:white;
+        }
+
+        .logout{
+            padding:25px 28px;
+            border-top:1px solid rgba(255,255,255,0.05);
+        }
+
+        .logout a{
+            color:#ff4d4d;
+            text-decoration:none;
+            font-size:18px;
+        }
+
+        /* =========================
+           CONTENT
+        ========================== */
+
+        .content{
+            margin-left:270px;
+            width:calc(100% - 270px);
+            padding:30px;
+        }
+
+        .page-title{
+            font-size:64px;
+            font-weight:800;
+            margin-bottom:10px;
+        }
+
+        .page-title i{
+            color:#1d7cff;
+            margin-right:10px;
+        }
+
+        .subtitle{
+            color:#94a3b8;
+            margin-bottom:35px;
+            font-size:18px;
+        }
+
+        /* =========================
+           SEARCH BAR
+        ========================== */
+
+        .search-box{
+            background:#1b2742;
+            border-radius:22px;
+            padding:16px;
+            display:flex;
+            align-items:center;
+            gap:15px;
+            margin-bottom:40px;
+            flex-wrap:wrap;
+        }
+
+        .search-input{
+            flex:1;
+            display:flex;
+            align-items:center;
+            background:#081327;
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:14px;
+            overflow:hidden;
+        }
+
+        .search-input span{
+            padding:16px;
+            color:#1d7cff;
+            font-size:20px;
+        }
+
+        .search-input input{
+            width:100%;
+            background:transparent;
+            border:none;
+            outline:none;
+            color:white;
+            padding-right:15px;
+        }
+
+        .filter-btns{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        }
+
+        .filter-btn{
+            border:none;
+            padding:12px 22px;
+            border-radius:50px;
+            background:#3a4b69;
+            color:white;
+            font-weight:600;
+            transition:0.3s;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover{
+            background:#ff7a18;
+        }
+
+        /* =========================
+           MOVIES GRID
+        ========================== */
+
+        .movies-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+            gap:25px;
+        }
+
+        .movie-card{
+            background:#15203a;
+            border-radius:22px;
+            overflow:hidden;
+            transition:0.35s;
+            cursor:pointer;
+            border:1px solid rgba(255,255,255,0.05);
+        }
+
+        .movie-card:hover{
+            transform:translateY(-10px);
+            box-shadow:0 15px 40px rgba(0,0,0,0.45);
+        }
+
+        .movie-image{
+            width:100%;
+            height:340px;
+            overflow:hidden;
+            position:relative;
+            background:#0f172a;
+        }
+
+        .movie-image img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+
+        .rating{
+            position:absolute;
+            top:15px;
+            right:15px;
+            background:rgba(0,0,0,0.7);
+            color:#ffc107;
+            padding:6px 12px;
+            border-radius:50px;
+            font-size:14px;
+            font-weight:600;
+        }
+
+        .movie-info{
+            padding:20px;
+        }
+
+        .movie-title{
+            font-size:22px;
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        .movie-meta{
+            color:#94a3b8;
+            margin-bottom:18px;
+            font-size:14px;
+        }
+
+        .movie-bottom{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .bookings{
+            color:#94a3b8;
+            font-size:14px;
+        }
+
+        .book-btn{
+            border:none;
+            background:#1d7cff;
+            color:white;
+            padding:10px 16px;
+            border-radius:10px;
+            font-weight:600;
+            transition:0.3s;
+        }
+
+        .book-btn:hover{
+            background:#005eff;
+        }
+
+        /* =========================
+           LOADER
+        ========================== */
+
+        .loader{
+            text-align:center;
+            padding:100px 0;
+        }
+
+        .loader .spinner-border{
+            width:60px;
+            height:60px;
+        }
+
+        .loader p{
+            margin-top:20px;
+            color:#94a3b8;
+            font-size:22px;
+        }
+
+        /* =========================
+           MOBILE
+        ========================== */
+
+        @media(max-width:992px){
+
+            .sidebar{
+                display:none;
+            }
+
+            .content{
+                width:100%;
+                margin-left:0;
+            }
+
+            .page-title{
+                font-size:42px;
+            }
+
+        }
+
     </style>
 </head>
+
 <body>
 
-<div class="wrapper">
-    <!-- Sidebar -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <h3 class="gradient-text"><i class="fas fa-film me-2"></i>CINEBOOK</h3>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <div>
+
+            <div class="logo">
+                <i class="fa-solid fa-crown"></i>
+                ADMIN PANEL
+            </div>
+
+            <div class="menu">
+
+                <a href="#">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Overview
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-users"></i>
+                    Manage Users
+                </a>
+
+                <a href="#" class="active">
+                    <i class="fa-solid fa-film"></i>
+                    Manage Movies
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-ticket"></i>
+                    All Bookings
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    Payments
+                </a>
+
+            </div>
+
         </div>
 
-        <ul class="list-unstyled components" id="sidebarMenu">
-            <!-- Dynamic menu based on role will be handled by sidebar.js if we wanted to, but for now fixed -->
-            <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
-            <li><a href="movies.html"><i class="fas fa-film"></i> Movies</a></li>
-            <li><a href="my-bookings.html"><i class="fas fa-ticket-alt"></i> My Bookings</a></li>
-            <li><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a></li>
-            <li><a href="feedback.html"><i class="fas fa-star"></i> Feedback</a></li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <a href="#" class="logout-btn text-danger text-decoration-none">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
+        <div class="logout">
+            <a href="#">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
             </a>
         </div>
-    </nav>
 
-    <!-- Page Content -->
-    <div id="content">
-        <button type="button" id="sidebarCollapse" class="btn">
-            <i class="fas fa-bars"></i>
-        </button>
+    </div>
 
-        <nav class="navbar navbar-expand-lg py-3 d-md-none">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="index.html" style="color:#f97316;">
-                    <i class="fas fa-film me-2"></i>CINE BOOK</a>
+    <!-- CONTENT -->
+
+    <div class="content">
+
+        <h1 class="page-title">
+            <i class="fa-solid fa-film"></i>
+            All Movies
+        </h1>
+
+        <p class="subtitle">
+            Discover the latest releases and book your tickets
+        </p>
+
+        <!-- SEARCH -->
+
+        <div class="search-box">
+
+            <div class="search-input">
+                <span>
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+
+                <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search by movie title..."
+                >
             </div>
-        </nav>
 
-        <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h1 class="display-5 fw-bold"><i class="fas fa-film me-2 text-primary"></i>All Movies</h1><p class="text-white-50">Discover the latest releases and book your tickets</p></div>
-    </div>
+            <div class="filter-btns">
 
-    <div class="search-section">
-        <div class="row g-3">
-            <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-search text-primary"></i></span><input type="text" id="searchInput" class="form-control" placeholder="Search by movie title..."></div></div>
-            <div class="col-md-6"><div class="d-flex flex-wrap gap-2"><div class="filter-chip active" data-filter="all">All Movies</div><div class="filter-chip" data-filter="now-showing">Now Showing</div><div class="filter-chip" data-filter="popular">Popular</div></div></div>
+                <button class="filter-btn active" data-filter="all">
+                    All Movies
+                </button>
+
+                <button class="filter-btn" data-filter="now-showing">
+                    Now Showing
+                </button>
+
+                <button class="filter-btn" data-filter="popular">
+                    Popular
+                </button>
+
+            </div>
+
         </div>
+
+        <!-- MOVIES -->
+
+        <div id="moviesContainer">
+
+            <div class="loader">
+
+                <div class="spinner-border text-primary"></div>
+
+                <p>Loading movies...</p>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="row g-4" id="moviesContainer"><div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-white-50">Loading movies...</p></div></div>
 </div>
 
-<div class="toast-container"></div>
-<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
-
+<!-- JQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</div>
-</div>
-</div>
-
-<script src="js/api.js"></script>
-<script src="js/common.js"></script>
-<script src="js/sidebar.js"></script>
-<script>
-    // Adjust sidebar based on role
-    $(document).ready(function() {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.role === 'ADMIN') {
-            $('#sidebar .sidebar-header h3').html('<i class="fas fa-crown me-2"></i>ADMIN PANEL');
-            $('#sidebarMenu').html(`
-                <li><a href="admin-dashboard.html"><i class="fas fa-chart-line"></i> Overview</a></li>
-                <li><a href="manage-users.html"><i class="fas fa-users"></i> Manage Users</a></li>
-                <li><a href="movies.html"><i class="fas fa-film"></i> Manage Movies</a></li>
-                <li><a href="my-bookings.html"><i class="fas fa-ticket-alt"></i> All Bookings</a></li>
-                <li><a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a></li>
-            `);
-        }
-    });
-</script>
 
 <script>
-    let allMovies = [], currentFilter = 'all', searchTerm = '';
 
-    function loadMovies() {
-        API.movies.getAll(function(error, movies) {
-            if (error) { $('#moviesContainer').html('<div class="col-12 text-center text-danger">Failed to load movies</div>'); return; }
-            allMovies = movies;
-            filterAndDisplay();
+    let allMovies = [];
+    let currentFilter = "all";
+    let searchTerm = "";
+
+    // =========================
+    // LOAD MOVIES
+    // =========================
+
+    function loadMovies(){
+
+        $.ajax({
+
+            url:"http://localhost:8080/api/movies/allMovies",
+            method:"GET",
+
+            success:function(response){
+
+                console.log("Movies Loaded:", response);
+
+                if(Array.isArray(response)){
+                    allMovies = response;
+                }
+                else if(response.data){
+                    allMovies = response.data;
+                }
+                else{
+                    allMovies = [];
+                }
+
+                filterMovies();
+            },
+
+            error:function(xhr,error){
+
+                console.log(error);
+
+                $("#moviesContainer").html(`
+
+                    <div class="text-center py-5">
+
+                        <h2 class="text-danger">
+                            Failed to Load Movies
+                        </h2>
+
+                    </div>
+
+                `);
+
+            }
+
         });
+
     }
 
-    function filterAndDisplay() {
+    // =========================
+    // FILTER MOVIES
+    // =========================
+
+    function filterMovies(){
+
         let filtered = [...allMovies];
-        if (searchTerm) filtered = filtered.filter(m => m.title.toLowerCase().includes(searchTerm.toLowerCase()));
-        if (currentFilter === 'now-showing') filtered = filtered.filter(m => m.releaseDate && new Date(m.releaseDate) <= new Date());
-        else if (currentFilter === 'popular') filtered = filtered.sort((a,b) => (b.popularityScore || 0) - (a.popularityScore || 0));
+
+        // Search
+
+        if(searchTerm){
+
+            filtered = filtered.filter(movie =>
+
+                movie.title &&
+                movie.title.toLowerCase()
+                    .includes(searchTerm.toLowerCase())
+
+            );
+
+        }
+
+        // Popular
+
+        if(currentFilter === "popular"){
+
+            filtered.sort((a,b)=>
+
+                (b.totalBookings || 0)
+                -
+                (a.totalBookings || 0)
+
+            );
+
+        }
+
         displayMovies(filtered);
+
     }
 
-    function displayMovies(movies) {
-        if (movies.length === 0) { $('#moviesContainer').html('<div class="col-12 text-center text-white-50 py-5"><i class="fas fa-film fa-3x mb-3"></i><h5>No movies found</h5></div>'); return; }
-        $('#moviesContainer').html(movies.map(m => `
-            <div class="col-md-3"><div class="movie-card" onclick="viewMovie(${m.id})"><div class="movie-poster">${m.posterUrl ? `<img src="${m.posterUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="fas fa-film" style="font-size:4rem;color:#f97316;"></i>`}<div class="movie-rating"><i class="fas fa-star text-warning"></i> ${m.rating || 'New'}</div></div>
-            <div class="p-3"><h5 class="text-white">${escapeHtml(m.title)}</h5><p class="text-white-50 small">${m.duration} min • ${m.genre || 'Action'}</p><div class="d-flex justify-content-between"><span class="small text-white-50"><i class="fas fa-ticket-alt"></i> ${m.totalBookings || 0} bookings</span><button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); bookMovie(${m.id})">Book Now</button></div></div></div></div>
-        `).join(''));
+    // =========================
+    // DISPLAY MOVIES
+    // =========================
+
+    function displayMovies(movies){
+
+        if(!movies || movies.length === 0){
+
+            $("#moviesContainer").html(`
+
+                <div class="text-center py-5">
+
+                    <i class="fa-solid fa-film fa-4x mb-4 text-secondary"></i>
+
+                    <h2>No Movies Found</h2>
+
+                </div>
+
+            `);
+
+            return;
+
+        }
+
+        let html = `<div class="movies-grid">`;
+
+        movies.forEach(movie => {
+
+            html += `
+
+                <div class="movie-card">
+
+                    <div class="movie-image">
+
+                        ${
+                movie.posterUrl ?
+
+                    `<img src="${movie.posterUrl}" alt="">`
+
+                    :
+
+                    `<img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop">`
+            }
+
+                        <div class="rating">
+
+                            <i class="fa-solid fa-star"></i>
+
+                            ${movie.rating || "4.5"}
+
+                        </div>
+
+                    </div>
+
+                    <div class="movie-info">
+
+                        <div class="movie-title">
+
+                            ${movie.title || "Movie Title"}
+
+                        </div>
+
+                        <div class="movie-meta">
+
+                            ${movie.duration || 120} min •
+                            ${movie.genre || "Action"}
+
+                        </div>
+
+                        <div class="movie-bottom">
+
+                            <div class="bookings">
+
+                                <i class="fa-solid fa-ticket"></i>
+
+                                ${movie.totalBookings || 0} bookings
+
+                            </div>
+
+                            <button class="book-btn">
+
+                                Book Now
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+        html += `</div>`;
+
+        $("#moviesContainer").html(html);
+
     }
 
-    function viewMovie(id) { window.location.href = `movie-details.html?id=${id}`; }
-    function bookMovie(id) { if (!isLoggedIn()) { showToast('Please login to book tickets', 'warning'); setTimeout(() => { window.location.href = 'login.html'; }, 1000); } else { window.location.href = `movie-details.html?id=${id}`; } }
+    // =========================
+    // SEARCH
+    // =========================
 
-    $('#searchInput').on('input', function() { searchTerm = $(this).val(); filterAndDisplay(); });
-    $('.filter-chip').on('click', function() { $('.filter-chip').removeClass('active'); $(this).addClass('active'); currentFilter = $(this).data('filter'); filterAndDisplay(); });
+    $("#searchInput").on("input",function(){
 
-    loadMovies();
+        searchTerm = $(this).val();
+
+        filterMovies();
+
+    });
+
+    // =========================
+    // FILTER BUTTONS
+    // =========================
+
+    $(document).on("click",".filter-btn",function(){
+
+        $(".filter-btn").removeClass("active");
+
+        $(this).addClass("active");
+
+        currentFilter = $(this).data("filter");
+
+        filterMovies();
+
+    });
+
+    // =========================
+    // INITIAL LOAD
+    // =========================
+
+    $(document).ready(function(){
+
+        loadMovies();
+
+    });
+
 </script>
+
 </body>
 </html>

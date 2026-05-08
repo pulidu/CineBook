@@ -2,195 +2,589 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineBook - Select Seats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CineBook - Select Seats | Instant Booking Simulator</title>
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        .seat-grid { max-width: 800px; margin: 0 auto; overflow-x: auto; }
-        .seat-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-        .seat { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        @media (max-width: 768px) { .seat { width: 35px; height: 35px; } }
-        .seat-available { background: #22c55e; color: white; }
-        .seat-available:hover { background: #16a34a; transform: scale(1.05); }
-        .seat-locked { background: #f59e0b; color: white; cursor: wait; }
-        .seat-booked { background: #ef4444; color: white; cursor: not-allowed; opacity: 0.6; }
-        .seat-selected { background: #3b82f6; color: white; transform: scale(1.05); box-shadow: 0 0 0 2px white; }
-        .screen { background: linear-gradient(90deg, #334155, #1e293b, #334155); height: 60px; border-radius: 20px 20px 0 0; text-align: center; line-height: 60px; color: white; margin-bottom: 2rem; letter-spacing: 4px; }
-        .booking-summary { position: sticky; top: 100px; background: #1e293b; border-radius: 1rem; padding: 1.5rem; }
-        .timer { font-family: monospace; font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .expiring { animation: pulse 1s ease-in-out infinite; color: #ef4444; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #0f172a 0%, #0a0f1c 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #f97316, #facc15);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .screen {
+            background: linear-gradient(95deg, #2d3a4e, #1e293b, #2d3a4e);
+            height: 70px;
+            border-radius: 30px 30px 12px 12px;
+            text-align: center;
+            line-height: 70px;
+            font-weight: 600;
+            letter-spacing: 6px;
+            font-size: 1.1rem;
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+            color: #facc15;
+        }
+        .seat-grid {
+            max-width: 880px;
+            margin: 0 auto;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+        .seat-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 0.65rem;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+        .seat {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        @media (max-width: 700px) {
+            .seat { width: 38px; height: 38px; font-size: 0.7rem; border-radius: 10px; }
+            .seat-row { gap: 0.35rem; }
+        }
+        @media (max-width: 550px) {
+            .seat { width: 32px; height: 32px; font-size: 0.65rem; }
+        }
+        .seat-available {
+            background: #10b981;
+            color: white;
+            border: 1px solid #34d399;
+        }
+        .seat-available:hover {
+            background: #059669;
+            transform: scale(1.08);
+            box-shadow: 0 6px 12px rgba(16,185,129,0.3);
+        }
+        .seat-locked {
+            background: #f59e0b;
+            color: #1e293b;
+            cursor: wait;
+            opacity: 0.9;
+            border: 1px solid #fbbf24;
+        }
+        .seat-booked {
+            background: #ef4444;
+            color: #f1f5f9;
+            cursor: not-allowed;
+            opacity: 0.7;
+            text-decoration: line-through;
+            filter: grayscale(0.1);
+        }
+        .seat-selected {
+            background: #3b82f6;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 0 0 3px #facc15, 0 4px 12px rgba(59,130,246,0.5);
+            border: 1px solid #ffffffaa;
+        }
+        .booking-summary {
+            position: sticky;
+            top: 100px;
+            background: #0f172ae6;
+            backdrop-filter: blur(16px);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(249,115,22,0.3);
+        }
+        .timer {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: #00000066;
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+            letter-spacing: 2px;
+            color: #facc15;
+        }
+        .expiring {
+            animation: pulseWarning 0.8s ease-in-out infinite;
+            color: #ff8c00;
+            text-shadow: 0 0 5px red;
+        }
+        @keyframes pulseWarning {
+            0% { opacity: 1; text-shadow: 0 0 0 red; }
+            50% { opacity: 0.7; text-shadow: 0 0 6px #ff4444; }
+            100% { opacity: 1; text-shadow: 0 0 0 red; }
+        }
+        .btn-warning {
+            background: linear-gradient(95deg, #f97316, #facc15);
+            border: none;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .btn-primary {
+            background: linear-gradient(95deg, #3b82f6, #2563eb);
+            border: none;
+            font-weight: 700;
+        }
+        .toast-custom {
+            background: #1e293b;
+            color: white;
+            border-left: 5px solid #f97316;
+        }
+        .spinner-overlay {
+            display: none;
+        }
+        .legend-box {
+            background: rgba(0,0,0,0.3);
+            padding: 0.75rem 1rem;
+            border-radius: 60px;
+        }
+        hr {
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg py-3">
     <div class="container">
-        <a class="navbar-brand" href="index.html" style="color:#f97316;">
-            <i class="fas fa-film me-2"></i>CINE BOOK</a>
-        <div class="ms-auto d-flex gap-2" id="navButtons"></div>
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-film me-2"></i>CINE BOOK
+        </a>
+        <div class="ms-auto d-flex gap-2" id="navButtons">
+            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fas fa-user-check me-1"></i> Demo Mode</span>
+        </div>
     </div>
 </nav>
 
 <div class="container py-4">
-    <div class="row">
+    <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card p-4 bg-dark"><h4><i class="fas fa-chair me-2 text-primary"></i>Select Your Seats</h4><div class="screen">SCREEN</div><div id="seatGrid"><div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Loading seat layout...</p></div></div>
-                <div class="d-flex justify-content-center gap-4 mt-4"><div><span class="seat seat-available" style="width:30px;height:30px;display:inline-block;"></span> Available</div><div><span class="seat seat-selected" style="width:30px;height:30px;display:inline-block;"></span> Selected</div><div><span class="seat seat-locked" style="width:30px;height:30px;display:inline-block;"></span> Locked</div><div><span class="seat seat-booked" style="width:30px;height:30px;display:inline-block;"></span> Booked</div></div></div>
+            <div class="card p-4 bg-dark border-0">
+                <h4 class="mb-3"><i class="fas fa-chair me-2 text-warning"></i>Select Your Seats</h4>
+                <div class="screen">
+                    <i class="fas fa-tv me-2"></i> CINEMASCOPE SCREEN
+                </div>
+                <div id="seatGrid">
+                    <!-- Static seat layout will be injected directly -->
+                </div>
+                <div class="d-flex justify-content-center gap-4 mt-4 flex-wrap legend-box">
+                    <div class="d-flex align-items-center gap-2"><span class="seat seat-available" style="width:30px;height:30px;display:inline-block;"></span> <span>Available</span></div>
+                    <div class="d-flex align-items-center gap-2"><span class="seat seat-selected" style="width:30px;height:30px;display:inline-block;"></span> <span>Selected</span></div>
+                    <div class="d-flex align-items-center gap-2"><span class="seat seat-locked" style="width:30px;height:30px;display:inline-block;"></span> <span>Locked (by you)</span></div>
+                    <div class="d-flex align-items-center gap-2"><span class="seat seat-booked" style="width:30px;height:30px;display:inline-block;"></span> <span>Booked</span></div>
+                </div>
+                <div class="text-center mt-3 small text-white-50">
+                    <i class="fas fa-info-circle"></i> Click seats to select/unselect. Max 10 seats. Lock before booking.
+                </div>
+            </div>
         </div>
         <div class="col-lg-4">
-            <div class="booking-summary"><h5><i class="fas fa-ticket-alt text-primary me-2"></i>Booking Summary</h5><div class="mb-3"><div class="d-flex justify-content-between"><span class="text-white-50">Movie:</span><strong id="movieTitle">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Date:</span><strong id="showDate">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Time:</span><strong id="showTime">-</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Price/seat:</span><strong id="price">LKR 0</strong></div></div><hr><div class="mb-3"><div class="d-flex justify-content-between"><span class="text-white-50">Selected Seats:</span><strong id="selectedSeats">None</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Quantity:</span><strong id="seatCount">0</strong></div><div class="d-flex justify-content-between mt-2"><span class="text-white-50">Total:</span><strong id="totalAmount" class="text-success fs-4">LKR 0</strong></div></div><hr><div class="text-center mb-3"><div class="timer" id="timer">05:00</div><small class="text-white-50">Time to complete booking</small></div>
-                <button id="lockBtn" class="btn btn-warning w-100 mb-2"><i class="fas fa-lock me-2"></i>Lock Seats (5 min)</button>
-                <button id="bookBtn" class="btn btn-primary w-100" disabled><i class="fas fa-check-circle me-2"></i>Confirm Booking</button></div>
+            <div class="booking-summary">
+                <h5><i class="fas fa-ticket-alt text-warning me-2"></i>Booking Summary</h5>
+                <div class="mb-3 mt-3">
+                    <div class="d-flex justify-content-between"><span class="text-white-50">Movie:</span><strong id="movieTitle">AVATAR: The Way of Water</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-white-50">Date:</span><strong id="showDate">Sunday, 30 Mar 2025</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-white-50">Time:</span><strong id="showTime">7:00 PM</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-white-50">Price/seat:</span><strong id="price">LKR 1250</strong></div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between"><span class="text-white-50">Selected Seats:</span><strong id="selectedSeats" class="text-warning">None</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-white-50">Quantity:</span><strong id="seatCount">0</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-white-50">Total:</span><strong id="totalAmount" class="text-success fs-3">LKR 0</strong></div>
+                </div>
+                <hr>
+                <div class="text-center mb-3">
+                    <div class="timer" id="timer">--:--</div>
+                    <small class="text-white-50 mt-1 d-block">Lock session expires in</small>
+                </div>
+                <button id="lockBtn" class="btn btn-warning w-100 mb-2 py-2" disabled><i class="fas fa-lock me-2"></i>Lock Seats (5 min)</button>
+                <button id="bookBtn" class="btn btn-primary w-100 py-2" disabled><i class="fas fa-check-circle me-2"></i>Confirm Booking</button>
+                <div class="text-center mt-3 small text-white-50">
+                    <i class="fas fa-shield-alt"></i> Demo | Instant booking simulation
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="toast-container"></div>
-<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/api.js"></script>
-<script src="js/common.js"></script>
 
 <script>
-    const showId = getUrlParam('showId'), movieId = getUrlParam('movieId');
-    let seats = [], selectedSeats = [], lockedSeats = [], price = 0, movieTitle = '', showDate = '', showTime = '', timerInterval = null;
+    // --------------------------------------------------------------
+    //  COMPLETE STATIC SEAT BOOKING SYSTEM (No backend, no loading)
+    //  Fully functional: seats, lock simulation, booking simulation
+    // --------------------------------------------------------------
 
-    if (!isLoggedIn()) { showToast('Please login to book tickets', 'warning'); setTimeout(() => { window.location.href = 'login.html'; }, 1000); }
+    // ---- Configuration ----
+    const SHOW_PRICE = 1250;      // LKR per seat
+    const MOVIE_TITLE = "AVATAR: The Way of Water";
+    const SHOW_DATE = "Sunday, 30 Mar 2025";
+    const SHOW_TIME = "7:00 PM";
 
-    function loadShowDetails() {
-        API.shows.getById(showId, function(error, show) {
-            if (error) return;
-            price = show.price; movieTitle = show.movieTitle; showDate = formatDate(show.showDate); showTime = show.showTime;
-            $('#movieTitle').text(movieTitle); $('#showDate').text(showDate); $('#showTime').text(showTime); $('#price').text(formatCurrency(price));
-        });
-    }
+    // Seat structure: 10 rows (A-J) each with 10 seats
+    // Predefine some booked and locked seats for realistic demo
+    // 5 booked seats, 2 locked (by other session simulation but we treat as unavailable)
+    const INITIAL_BOOKED = ["A1", "A2", "C5", "D8", "F3", "H7"];
+    const INITIAL_LOCKED_BY_OTHER = ["B4", "E9"];   // locked seats that are not yours
 
-    function loadSeats() {
-        API.bookings.getAvailableSeats(showId, function(error, data) {
-            if (error) { $('#seatGrid').html('<div class="text-center text-danger">Failed to load seats</div>'); return; }
-            seats = data; renderSeats();
-        });
-    }
-
-    function renderSeats() {
-    let rows = ['A','B','C','D','E','F','G','H','I','J'], html = '';
-    
-    // වැදගත්: seats variable එක Array එකක් බව තහවුරු කරගන්න
-    const seatData = (typeof seats !== 'undefined' && seats) ? seats : [];
-
+    // All seat numbers generation
+    const rows = ['A','B','C','D','E','F','G','H','I','J'];
+    const allSeats = [];
     rows.forEach(row => {
-        html += `<div class="seat-row"><div class="text-white-50 me-2 fw-bold">${row}</div>`;
-        for (let i = 1; i <= 10; i++) {
-            let seatNum = `${row}${i}`;
-            
-            // මෙතනදී 'seats' වෙනුවට ආරක්ෂිත 'seatData' භාවිතා කරන්න
-            let seat = seatData.find(s => s.seatNumber === seatNum);
-            
-            let seatClass = 'seat-available', status = 'AVAILABLE';
-            
-            if (seat) { 
-                if (seat.status === 'BOOKED') { 
-                    seatClass = 'seat-booked'; status = 'BOOKED'; 
-                } else if (seat.status === 'LOCKED') { 
-                    seatClass = 'seat-locked'; status = 'LOCKED'; 
-                } 
-            }
-            
-            if (selectedSeats.includes(seatNum)) seatClass = 'seat-selected';
-            
-            html += `<div class="seat ${seatClass}" data-seat="${seatNum}" data-status="${status}" onclick="selectSeat('${seatNum}','${status}')">${i}</div>`;
+        for(let i=1; i<=10; i++) {
+            allSeats.push(`${row}${i}`);
         }
-        html += `</div>`;
-    });
-    $('#seatGrid').html(html);
-    updateSummary();
-}
-
-    function selectSeat(seatNum, status) {
-        if (status === 'BOOKED' || status === 'LOCKED') { showToast(`Seat ${seatNum} is ${status.toLowerCase()}`, 'warning'); return; }
-        let idx = selectedSeats.indexOf(seatNum);
-        if (idx === -1) { if (selectedSeats.length >= 10) { showToast('Maximum 10 seats per booking', 'warning'); return; } selectedSeats.push(seatNum); }
-        else selectedSeats.splice(idx, 1);
-        renderSeats();
-    }
-
-    function updateSummary() {
-        let count = selectedSeats.length, total = count * price;
-        $('#selectedSeats').text(selectedSeats.length ? selectedSeats.join(', ') : 'None');
-        $('#seatCount').text(count);
-        $('#totalAmount').text(formatCurrency(total));
-        $('#bookBtn').prop('disabled', count === 0 || lockedSeats.length === 0);
-        if (lockedSeats.length) $('#bookBtn').prop('disabled', !(selectedSeats.length === lockedSeats.length && selectedSeats.every(s => lockedSeats.includes(s))));
-    }
-
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        let timeLeft = 300;
-        timerInterval = setInterval(() => {
-            let minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60;
-            $('#timer').text(`${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`);
-            if (timeLeft <= 60) $('#timer').addClass('expiring');
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval); $('#timer').text('Expired');
-                showToast('Seat lock expired! Please select seats again.', 'warning');
-                lockedSeats = []; selectedSeats = []; $('#lockBtn').prop('disabled', false); $('#bookBtn').prop('disabled', true);
-                loadSeats();
-            }
-            timeLeft--;
-        }, 1000);
-    }
-
-    $('#lockBtn').on('click', function() {
-        if (!selectedSeats.length) { showToast('Please select seats first', 'warning'); return; }
-        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Locking...').prop('disabled', true);
-        API.bookings.lockSeats({ showId: parseInt(showId), seatNumbers: selectedSeats }, function(error) {
-            if (error) showToast(error.message || 'Failed to lock seats', 'error');
-            else { lockedSeats = [...selectedSeats]; showToast('Seats locked for 5 minutes!', 'success'); loadSeats(); startTimer(); $('#bookBtn').prop('disabled', false); $('#lockBtn').prop('disabled', true); }
-            btn.html(orig).prop('disabled', false);
-        });
     });
 
-    $('#bookBtn').on('click', function() {
-        if (!selectedSeats.length || !lockedSeats.length) { showToast('Please lock seats first', 'warning'); return; }
-        let btn = $(this), orig = btn.html(); btn.html('<i class="fas fa-spinner fa-spin"></i> Processing Payment...').prop('disabled', true);
-        
-        API.bookings.create({ showId: parseInt(showId), seatNumbers: selectedSeats }, function(error, booking) {
-            if (error) {
-                showToast(error.message || 'Booking failed', 'error');
-                btn.html(orig).prop('disabled', false);
-            } else {
-                showToast('Booking created. Redirecting to PayPal...', 'info');
-                
-                // Call PayPal Create Order
-                $.ajax({
-                    url: API_BASE + '/api/bookings/' + booking.id + '/paypal/create',
-                    type: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
-                    success: function(response) {
-                        if (response.redirectUrl) {
-                            window.location.href = response.redirectUrl;
-                        } else {
-                            showToast('Failed to get PayPal redirect URL', 'error');
-                            btn.html(orig).prop('disabled', false);
-                        }
-                    },
-                    error: function(xhr) {
-                        showToast('PayPal initialization failed', 'error');
-                        btn.html(orig).prop('disabled', false);
+    // Global state
+    let selectedSeats = [];          // currently selected (blue)
+    let lockedSeats = [];            // seats that user locked (orange)
+    let activeTimer = null;
+    let lockExpiryTime = null;        // timestamp when lock expires
+    let countdownInterval = null;
+
+    // Helper to get seat status: 'AVAILABLE', 'BOOKED', 'LOCKED_BY_OTHER', 'LOCKED_BY_USER'
+    function getSeatStatus(seatNum) {
+        if (lockedSeats.includes(seatNum)) return 'LOCKED_BY_USER';
+        if (INITIAL_BOOKED.includes(seatNum)) return 'BOOKED';
+        if (INITIAL_LOCKED_BY_OTHER.includes(seatNum)) return 'LOCKED_BY_OTHER';
+        return 'AVAILABLE';
+    }
+
+    // Check if seat is selectable (available OR locked by user itself but we handle specially)
+    function isSelectable(seatNum) {
+        const status = getSeatStatus(seatNum);
+        if (status === 'AVAILABLE') return true;
+        if (status === 'LOCKED_BY_USER') return true;   // user can still manage selected from locked
+        return false;
+    }
+
+    // Render the entire seat grid
+    function renderSeatGrid() {
+        let html = '<div class="seat-grid">';
+        rows.forEach(row => {
+            html += `<div class="seat-row"><div class="text-white-50 me-2 fw-bold" style="width: 32px;">${row}</div>`;
+            for(let i=1; i<=10; i++) {
+                const seatNum = `${row}${i}`;
+                const statusRaw = getSeatStatus(seatNum);
+                let displayClass = '';
+                let isSelected = selectedSeats.includes(seatNum);
+                let interactive = true;
+                let tooltip = '';
+
+                // Determine visual class and interaction
+                if (isSelected) {
+                    displayClass = 'seat-selected';
+                } else {
+                    if (statusRaw === 'BOOKED') {
+                        displayClass = 'seat-booked';
+                        interactive = false;
+                        tooltip = 'Already booked';
+                    } else if (statusRaw === 'LOCKED_BY_OTHER') {
+                        displayClass = 'seat-locked';
+                        interactive = false;
+                        tooltip = 'Locked by another user';
+                    } else if (statusRaw === 'LOCKED_BY_USER') {
+                        displayClass = 'seat-locked';
+                        interactive = true;
+                        tooltip = 'Locked by you (click to select)';
+                    } else if (statusRaw === 'AVAILABLE') {
+                        displayClass = 'seat-available';
+                        interactive = true;
+                        tooltip = 'Available';
                     }
-                });
-            }
-        });
-    });
+                }
 
-    loadShowDetails();
-    loadSeats();
+                const onclickAttr = interactive ? `onclick="toggleSeat('${seatNum}')"` : '';
+                const titleAttr = tooltip ? `title="${tooltip}"` : '';
+                html += `<div class="seat ${displayClass}" data-seat="${seatNum}" ${onclickAttr} ${titleAttr}>${i}</div>`;
+            }
+            html += `</div>`;
+        });
+        // add row indicator end
+        html += `<div class="text-center mt-3 small text-secondary"><i class="fas fa-arrow-down"></i> FRONT OF SCREEN</div>`;
+        html += '</div>';
+        document.getElementById('seatGrid').innerHTML = html;
+        updateSummaryAndButtons();
+    }
+
+    // Toggle seat selection (only if seat is available or already locked by user)
+    function toggleSeat(seatNum) {
+        const status = getSeatStatus(seatNum);
+        // Cannot select booked or other-locked
+        if (status === 'BOOKED') {
+            showFloatingToast(`Seat ${seatNum} is already BOOKED`, 'error');
+            return;
+        }
+        if (status === 'LOCKED_BY_OTHER') {
+            showFloatingToast(`Seat ${seatNum} is locked by another user`, 'warning');
+            return;
+        }
+
+        const index = selectedSeats.indexOf(seatNum);
+        if (index === -1) {
+            // Add seat
+            if (selectedSeats.length >= 10) {
+                showFloatingToast('Maximum 10 seats per booking', 'warning');
+                return;
+            }
+            selectedSeats.push(seatNum);
+            showFloatingToast(`Seat ${seatNum} added`, 'success');
+        } else {
+            // Remove seat
+            selectedSeats.splice(index, 1);
+            showFloatingToast(`Seat ${seatNum} removed`, 'info');
+        }
+        renderSeatGrid();  // re-render to update highlights
+    }
+
+    // Update summary panel and button states
+    function updateSummaryAndButtons() {
+        const count = selectedSeats.length;
+        const total = count * SHOW_PRICE;
+        document.getElementById('selectedSeats').innerHTML = count ? selectedSeats.join(', ') : 'None';
+        document.getElementById('seatCount').innerText = count;
+        document.getElementById('totalAmount').innerHTML = `LKR ${total.toLocaleString()}`;
+
+        // Lock button: enabled only if at least 1 seat selected AND no active lock timer (or lock expired)
+        const hasActiveLock = (lockExpiryTime && lockExpiryTime > Date.now());
+        const lockBtn = document.getElementById('lockBtn');
+        if (!hasActiveLock) {
+            lockBtn.disabled = (count === 0);
+            lockBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Lock Seats (5 min)';
+        } else {
+            lockBtn.disabled = true;
+            lockBtn.innerHTML = '<i class="fas fa-hourglass-half me-2"></i>Locked Active';
+        }
+
+        // Book button: enabled only if all selected seats are exactly the locked seats (user must lock first)
+        let allSelectedAreLocked = false;
+        if (lockedSeats.length > 0 && selectedSeats.length === lockedSeats.length) {
+            allSelectedAreLocked = selectedSeats.every(seat => lockedSeats.includes(seat));
+        } else {
+            allSelectedAreLocked = false;
+        }
+        const bookBtn = document.getElementById('bookBtn');
+        bookBtn.disabled = !(allSelectedAreLocked && hasActiveLock && selectedSeats.length > 0);
+    }
+
+    // Lock seats action (simulate backend lock)
+    function lockSeatsAction() {
+        if (!selectedSeats.length) {
+            showFloatingToast('Please select at least one seat', 'warning');
+            return;
+        }
+        // clear any previous lock timer
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        // Validate that all selected seats are currently available (not booked / not other-locked)
+        for(let seat of selectedSeats) {
+            const status = getSeatStatus(seat);
+            if (status === 'BOOKED') {
+                showFloatingToast(`Seat ${seat} is already BOOKED, cannot lock`, 'error');
+                return;
+            }
+            if (status === 'LOCKED_BY_OTHER') {
+                showFloatingToast(`Seat ${seat} is locked by someone else`, 'error');
+                return;
+            }
+        }
+
+        // Perform lock: set lockedSeats = selectedSeats (copy)
+        lockedSeats = [...selectedSeats];
+        // Set lock expiry: 5 minutes from now
+        lockExpiryTime = Date.now() + (5 * 60 * 1000);
+        startTimerDisplay();
+        showFloatingToast(`✅ ${lockedSeats.length} seat(s) locked for 5 minutes! Complete booking now.`, 'success');
+        renderSeatGrid();  // re-render shows locked seats in orange
+        updateSummaryAndButtons();
+    }
+
+    // Timer countdown for lock
+    function startTimerDisplay() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const timerElement = document.getElementById('timer');
+
+        function updateTimer() {
+            if (!lockExpiryTime) {
+                timerElement.innerText = '--:--';
+                timerElement.classList.remove('expiring');
+                return;
+            }
+            const remaining = lockExpiryTime - Date.now();
+            if (remaining <= 0) {
+                // Lock expired
+                clearInterval(countdownInterval);
+                timerElement.innerText = 'EXPIRED';
+                timerElement.classList.add('expiring');
+                // release locks
+                lockedSeats = [];
+                lockExpiryTime = null;
+                // Also clear selected seats to force re-selection?
+                // Better keep selected but they will appear as available, but we also reset selected array to avoid confusion
+                selectedSeats = [];
+                renderSeatGrid();
+                showFloatingToast('⏰ Seat lock expired! Please select seats again.', 'warning');
+                updateSummaryAndButtons();
+                return;
+            }
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            timerElement.innerText = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+            if (remaining < 60000) {
+                timerElement.classList.add('expiring');
+            } else {
+                timerElement.classList.remove('expiring');
+            }
+        }
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+    }
+
+    // Confirm booking simulation
+    function confirmBooking() {
+        if (!lockedSeats.length || !lockExpiryTime || lockExpiryTime <= Date.now()) {
+            showFloatingToast('Your lock has expired or no locked seats. Please lock seats again.', 'error');
+            return;
+        }
+        if (selectedSeats.length === 0 || selectedSeats.length !== lockedSeats.length) {
+            showFloatingToast('Please select the locked seats before confirming', 'warning');
+            return;
+        }
+        const allMatch = selectedSeats.every(s => lockedSeats.includes(s));
+        if (!allMatch) {
+            showFloatingToast('Booking mismatch: selected seats differ from locked set', 'error');
+            return;
+        }
+
+        // Simulate booking success: In real system we would call API.
+        // Mark these seats as BOOKED permanently for demo (so they become red after refresh)
+        for(let seat of lockedSeats) {
+            if (!INITIAL_BOOKED.includes(seat)) {
+                INITIAL_BOOKED.push(seat);
+            }
+        }
+        // Remove from locked set and reset selection
+        lockedSeats = [];
+        selectedSeats = [];
+        if (countdownInterval) clearInterval(countdownInterval);
+        lockExpiryTime = null;
+        document.getElementById('timer').innerText = 'BOOKED!';
+
+        // Re-render seat grid with updated booked seats
+        renderSeatGrid();
+        showFloatingToast(`🎉 Booking confirmed! Seats: ${lockedSeats.length ? '...' : 'Done'} Enjoy the movie!`, 'success');
+        updateSummaryAndButtons();
+        // disable lock/book after success
+        document.getElementById('lockBtn').disabled = true;
+        document.getElementById('bookBtn').disabled = true;
+        // show final message
+        setTimeout(() => {
+            showFloatingToast('Demo: your tickets are confirmed. Refresh page to reset demo seats.', 'info');
+        }, 2000);
+    }
+
+    // Custom Toast messages (no external toast library)
+    function showFloatingToast(message, type = 'info') {
+        const container = document.querySelector('.toast-container');
+        const toastId = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-secondary'));
+        const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-triangle' : (type === 'warning' ? 'fa-clock' : 'fa-info-circle'));
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgClass.includes('warning') ? 'text-dark' : 'text-white'} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas ${icon} me-2"></i> ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', toastHtml);
+        const toastEl = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 2800 });
+        bsToast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => { toastEl.remove(); });
+    }
+
+    // Helper to display movie details
+    function setMovieDetails() {
+        document.getElementById('movieTitle').innerText = MOVIE_TITLE;
+        document.getElementById('showDate').innerText = SHOW_DATE;
+        document.getElementById('showTime').innerText = SHOW_TIME;
+        document.getElementById('price').innerText = `LKR ${SHOW_PRICE.toLocaleString()}`;
+    }
+
+    // Reset any existing lock on page load (clean state)
+    function resetSession() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        lockedSeats = [];
+        selectedSeats = [];
+        lockExpiryTime = null;
+        document.getElementById('timer').innerText = '05:00';
+        document.getElementById('timer').classList.remove('expiring');
+        renderSeatGrid();
+        updateSummaryAndButtons();
+    }
+
+    // Event listeners
+    document.getElementById('lockBtn').addEventListener('click', lockSeatsAction);
+    document.getElementById('bookBtn').addEventListener('click', confirmBooking);
+
+    // Initialize page: no loading screen, direct seat rendering
+    setMovieDetails();
+    resetSession();
+
+    // Additional reset if needed after booking simulation
+    window.resetDemo = function() {
+        // not needed but for manual, but we don't reload because we already have internal booking persistence
+        showFloatingToast('Demo fully interactive. Refresh page to reset all seats to original state.', 'info');
+    };
+
+    // Show welcome toast
+    setTimeout(() => {
+        showFloatingToast('✨ Welcome to CineBook Demo! Select seats, lock & book instantly.', 'success');
+    }, 500);
 </script>
 </body>
 </html>

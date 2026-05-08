@@ -1,4 +1,4 @@
-package lk.ijse.cinebook.controller;
+package lk.ijse.cinebook.controllers;
 
 import lk.ijse.cinebook.dto.response.AuthResponse;
 import lk.ijse.cinebook.dto.request.LoginRequest;

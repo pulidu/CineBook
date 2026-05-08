@@ -2,89 +2,580 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineBook - Movie Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CineBook - Choose Seats & Checkout | Movie Tickets</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        .movie-hero { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 1.5rem; padding: 2rem; margin-bottom: 2rem; }
-        .movie-poster-large { width: 100%; max-width: 280px; border-radius: 1rem; background: #334155; aspect-ratio: 2/3; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
-        .show-card { background: #1e293b; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; transition: all 0.3s ease; cursor: pointer; }
-        .show-card:hover { background: #2d3a4e; transform: translateX(5px); }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem; }
-        .info-item { background: rgba(255,255,255,0.05); padding: 0.75rem; border-radius: 0.75rem; text-align: center; }
-        .trailer-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .trailer-modal.active { display: flex; }
-        .trailer-container { position: relative; width: 80%; max-width: 800px; }
-        .close-trailer { position: absolute; top: -40px; right: 0; color: white; font-size: 2rem; cursor: pointer; }
-        .trailer-container iframe { width: 100%; aspect-ratio: 16/9; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0b1120;
+            font-family: 'Inter', sans-serif;
+            color: #f1f5f9;
+        }
+        .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 1.6rem;
+            color: #f97316;
+        }
+        .movie-hero {
+            background: linear-gradient(125deg, #1e293b, #0f172a);
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(249,115,22,0.2);
+        }
+        .movie-poster-large {
+            width: 100%;
+            max-width: 280px;
+            border-radius: 1.25rem;
+            background: #1e293b;
+            aspect-ratio: 2/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 20px 30px -10px black;
+            overflow: hidden;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .info-item {
+            background: rgba(255,255,255,0.05);
+            padding: 0.75rem;
+            border-radius: 1rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .show-card {
+            background: #1e293b;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.25s ease;
+            border: 1px solid #2d3a4e;
+            cursor: pointer;
+        }
+        .show-card:hover {
+            background: #2a374b;
+            transform: translateY(-2px);
+            border-color: #f97316;
+            box-shadow: 0 12px 20px -12px rgba(249,115,22,0.3);
+        }
+        .btn-orange {
+            background: #f97316;
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-orange:hover {
+            background: #ea580c;
+            transform: scale(1.02);
+            color: white;
+        }
+        .btn-outline-seat {
+            border: 1px solid #334155;
+            background: transparent;
+            color: #cbd5e1;
+        }
+        /* Seat map styles */
+        .seat-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin: 2rem 0;
+        }
+        .seat-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .seat {
+            width: 48px;
+            height: 48px;
+            background: #2d3a4e;
+            border-radius: 12px 12px 8px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s ease;
+            color: #e2e8f0;
+            border-bottom: 3px solid #f97316;
+        }
+        .seat.available:hover {
+            background: #3b4a62;
+            transform: scale(1.02);
+        }
+        .seat.selected {
+            background: #f97316;
+            color: white;
+            border-bottom-color: #ffedd5;
+            box-shadow: 0 0 0 2px rgba(249,115,22,0.5);
+        }
+        .seat.occupied {
+            background: #1e293b;
+            color: #64748b;
+            cursor: not-allowed;
+            border-bottom-color: #475569;
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .seat.available {
+            background: #0f172a;
+            border: 1px solid #f97316;
+        }
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin: 1rem 0;
+            font-size: 0.8rem;
+        }
+        .legend span {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .modal-content {
+            background: #0f172a;
+            border-radius: 1.5rem;
+            border: 1px solid #2d3a4e;
+        }
+        .modal-header, .modal-footer {
+            border-color: #2d3a4e;
+        }
+        .btn-close-white {
+            filter: invert(1);
+        }
+        .checkout-summary {
+            background: #1e293b;
+            border-radius: 1rem;
+            padding: 0.8rem 1.2rem;
+            margin-top: 1rem;
+        }
+        .spinner-overlay {
+            background: rgba(0,0,0,0.7);
+        }
+        .toast-container {
+            z-index: 2100;
+        }
+        @media (max-width: 768px) {
+            .seat { width: 38px; height: 38px; font-size: 10px; }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg py-3">
+<nav class="navbar navbar-expand-lg py-3 fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="index.html" style="color:#f97316;">
-            <i class="fas fa-film me-2"></i>CINE BOOK</a>
-        <div class="ms-auto d-flex gap-2" id="navButtons"></div>
+        <a class="navbar-brand" href="#" style="color:#f97316;">
+            <i class="fas fa-film me-2"></i>CINE BOOK
+        </a>
+        <div class="ms-auto d-flex gap-2" id="navButtons">
+            <button class="btn btn-outline-light btn-sm" id="userStatusBtn"><i class="fas fa-user me-1"></i> CineFan</button>
+        </div>
     </div>
 </nav>
 
-<div class="container py-4" id="movieContent"><div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-white-50">Loading movie details...</p></div></div>
+<div class="container py-5 mt-4" id="movieContent">
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-white-50">Loading cinematic experience...</p>
+    </div>
+</div>
 
-<div id="trailerModal" class="trailer-modal"><div class="trailer-container"><i class="fas fa-times close-trailer" onclick="closeTrailer()"></i><iframe id="trailerIframe" src="" frameborder="0" allowfullscreen></iframe></div></div>
-
-<div class="toast-container"></div>
-<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+<!-- Seat Selection Modal (Checkout & Seat Picker) -->
+<div class="modal fade" id="seatModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-couch me-2 text-warning"></i> Select Your Seats</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalShowInfo" class="text-center mb-2"></div>
+                <div class="legend">
+                    <div><span class="bg-secondary" style="background:#0f172a; border:1px solid #f97316;"></span> Available</div>
+                    <div><span style="background:#f97316;"></span> Selected</div>
+                    <div><span style="background:#1e293b; border-bottom-color:#475569;"></span> Booked</div>
+                </div>
+                <div id="seatMapContainer" class="seat-grid"></div>
+                <div class="checkout-summary d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div><i class="fas fa-ticket-alt text-primary"></i> <strong id="selectedCount">0</strong> seats selected</div>
+                    <div><i class="fas fa-coins text-warning"></i> Total: <strong id="totalPriceDisplay">$0.00</strong></div>
+                </div>
+                <div id="seatError" class="text-danger small text-center mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-orange" id="checkoutBtn"><i class="fas fa-shopping-cart me-2"></i> CHECK OUT THIS MOVIE →</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/api.js"></script>
-<script src="js/common.js"></script>
 
 <script>
-    const movieId = getUrlParam('id');
+    // ---------- MOCK DATABASE (Movies & Shows with dynamic seat persistence) ----------
 
-    function openTrailer(url) {
-        let videoId = '';
-        if (url.includes('youtube.com/watch?v=')) videoId = url.split('v=')[1].split('&')[0];
-        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
-        if (videoId) { $('#trailerIframe').attr('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`); $('#trailerModal').addClass('active'); }
-        else window.open(url, '_blank');
+
+
+
+    // Reserved seats storage (persistent per showId: array of seatIds like "A3", "B5")
+    let reservedSeatsMap = {};
+
+    // Load reserved seats from localStorage
+    function loadReservedSeats() {
+        const stored = localStorage.getItem("cinebook_reserved_seats");
+        if(stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                reservedSeatsMap = parsed;
+            } catch(e) {}
+        }
+        // ensure each show has entry
+        SHOWS_DB.forEach(show => {
+            if(!reservedSeatsMap[show.id]) reservedSeatsMap[show.id] = [];
+            // Sync availableSeats based on pre-reserved length and total seats
+            const occupiedCount = reservedSeatsMap[show.id].length;
+            show.availableSeats = Math.max(0, show.totalSeats - occupiedCount);
+        });
+        persistReservedSeats();
     }
 
-    function closeTrailer() { $('#trailerIframe').attr('src', ''); $('#trailerModal').removeClass('active'); }
-
-    function bookShow(showId) {
-        if (!isLoggedIn()) { showToast('Please login to book tickets', 'warning'); setTimeout(() => { window.location.href = 'login.html'; }, 1000); return; }
-        window.location.href = `booking.html?showId=${showId}&movieId=${movieId}`;
+    function persistReservedSeats() {
+        localStorage.setItem("cinebook_reserved_seats", JSON.stringify(reservedSeatsMap));
     }
 
-    function loadMovie() {
-        API.movies.getById(movieId, function(error, movie) {
-            if (error) { $('#movieContent').html('<div class="text-center text-danger">Failed to load movie</div>'); return; }
-            API.shows.getByMovie(movieId, function(err, shows) {
-                $('#movieContent').html(`
-                    <div class="movie-hero"><div class="row"><div class="col-md-3 text-center"><div class="movie-poster-large">${movie.posterUrl ? `<img src="${movie.posterUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:1rem;">` : `<i class="fas fa-film" style="font-size:5rem;color:#f97316;"></i>`}</div></div>
-                    <div class="col-md-9"><h1 class="display-4 fw-bold">${escapeHtml(movie.title)}</h1><div class="text-warning mb-3">${renderStars(movie.rating || 0)} <span class="text-white-50">(${movie.rating || '0'}/5)</span></div>
-                    <p class="text-white-50">${movie.description || 'No description available'}</p><div class="info-grid"><div class="info-item"><i class="fas fa-clock text-primary"></i><div class="text-white fw-bold">${movie.duration} min</div><small>Duration</small></div>
-                    <div class="info-item"><i class="fas fa-tag text-primary"></i><div class="text-white fw-bold">${movie.genre || 'N/A'}</div><small>Genre</small></div>
-                    <div class="info-item"><i class="fas fa-language text-primary"></i><div class="text-white fw-bold">${movie.language || 'English'}</div><small>Language</small></div>
-                    <div class="info-item"><i class="fas fa-calendar text-primary"></i><div class="text-white fw-bold">${movie.releaseDate ? formatDate(movie.releaseDate) : 'Coming Soon'}</div><small>Release</small></div></div>
-                    ${movie.trailerUrl ? `<button class="btn btn-outline-primary mt-3" onclick="openTrailer('${movie.trailerUrl}')"><i class="fas fa-play me-2"></i>Watch Trailer</button>` : ''}</div></div></div>
-                    <h3 class="mb-3"><i class="fas fa-calendar-alt text-primary me-2"></i>Available Shows</h3>
-                    ${shows?.length ? shows.map(s => `<div class="show-card" onclick="bookShow(${s.id})"><div class="row align-items-center"><div class="col-md-3"><i class="fas fa-calendar-alt text-primary"></i> ${formatDate(s.showDate)}</div>
-                    <div class="col-md-2"><i class="fas fa-clock text-primary"></i> ${s.showTime}</div><div class="col-md-2"><i class="fas fa-tag text-primary"></i> <span class="text-success fw-bold">${formatCurrency(s.price)}</span></div>
-                    <div class="col-md-3"><i class="fas fa-chair text-primary"></i> ${s.availableSeats} / ${s.totalSeats} seats available</div>
-                    <div class="col-md-2 text-end"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); bookShow(${s.id})"><i class="fas fa-ticket-alt"></i> Book Now</button></div></div></div>`).join('') : '<div class="text-center py-5"><i class="fas fa-calendar-times fa-3x"></i><h5 class="mt-3">No shows available</h5></div>'}
-                `);
+    // Helper functions
+    function formatDate(dateStr) {
+        if(!dateStr) return "TBA";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function formatCurrency(amount) { return "$" + amount.toFixed(2); }
+    function renderStars(rating) {
+        let full = Math.floor(rating);
+        let half = (rating % 1) >= 0.5;
+        let stars = "";
+        for(let i=0; i<full; i++) stars += '<i class="fas fa-star text-warning"></i>';
+        if(half) stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+        for(let i=0; i<5-full-(half?1:0); i++) stars += '<i class="far fa-star text-warning"></i>';
+        return stars;
+    }
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function showToast(message, type = 'success') {
+        const toastHtml = `<div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'warning'} border-0 m-2" role="alert"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+        const container = document.querySelector('.toast-container') || (() => { const c = document.createElement('div'); c.className = 'toast-container position-fixed bottom-0 end-0 p-3'; document.body.appendChild(c); return c; })();
+        const toastEl = $(toastHtml);
+        container.appendChild(toastEl[0]);
+        const bsToast = new bootstrap.Toast(toastEl[0], { delay: 3000 });
+        bsToast.show();
+        toastEl.on('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    function getUrlParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Global state
+    let currentMovie = null;
+    let currentShows = [];
+    let selectedShowForModal = null;   // show object for seat picker
+    let currentlySelectedSeats = [];    // seat IDs like "B3"
+    let seatAvailabilityCache = {};     // showId -> { seatId: occupied(bool) }
+
+    // Compute occupied seat IDs for a given show
+    function getOccupiedSeatsForShow(showId) {
+        const reserved = reservedSeatsMap[showId] || [];
+        return new Set(reserved);
+    }
+
+    // Generate seat layout (grid) based on rows/cols & occupied set
+    function renderSeatMap(show, selectedSeatIds) {
+        const rows = show.seatLayoutRows || 6;
+        const cols = show.seatLayoutCols || 8;
+        const occupiedSet = getOccupiedSeatsForShow(show.id);
+        const selectedSet = new Set(selectedSeatIds);
+        const container = document.getElementById("seatMapContainer");
+        if(!container) return;
+        container.innerHTML = "";
+        for(let r = 0; r < rows; r++) {
+            const rowLetter = String.fromCharCode(65 + r); // A, B, C...
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "seat-row";
+            for(let c = 0; c < cols; c++) {
+                const seatNumber = c + 1;
+                const seatId = `${rowLetter}${seatNumber}`;
+                const isOccupied = occupiedSet.has(seatId);
+                const isSelected = selectedSet.has(seatId);
+                const seatDiv = document.createElement("div");
+                seatDiv.className = `seat ${isOccupied ? 'occupied' : (isSelected ? 'selected' : 'available')}`;
+                seatDiv.textContent = seatId;
+                if(!isOccupied) {
+                    seatDiv.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        toggleSeatSelection(show.id, seatId);
+                    });
+                }
+                rowDiv.appendChild(seatDiv);
+            }
+            container.appendChild(rowDiv);
+        }
+        // Update count & total price
+        const count = currentlySelectedSeats.length;
+        document.getElementById("selectedCount").innerText = count;
+        const total = count * show.price;
+        document.getElementById("totalPriceDisplay").innerHTML = formatCurrency(total);
+        document.getElementById("seatError").innerText = "";
+    }
+
+    function toggleSeatSelection(showId, seatId) {
+        const show = selectedShowForModal;
+        if(!show) return;
+        const occupiedSet = getOccupiedSeatsForShow(showId);
+        if(occupiedSet.has(seatId)) {
+            showToast("Seat already booked!", "danger");
+            return;
+        }
+        const index = currentlySelectedSeats.indexOf(seatId);
+        if(index === -1) {
+            currentlySelectedSeats.push(seatId);
+        } else {
+            currentlySelectedSeats.splice(index, 1);
+        }
+        renderSeatMap(show, currentlySelectedSeats);
+    }
+
+    function openSeatSelectionModal(show) {
+        selectedShowForModal = show;
+        // reset selected seats
+        currentlySelectedSeats = [];
+        // load fresh seat map using current occupied data
+        const occupiedSet = getOccupiedSeatsForShow(show.id);
+        // populate modal info
+        document.getElementById("modalShowInfo").innerHTML = `<i class="fas fa-calendar-alt me-1 text-primary"></i> ${formatDate(show.showDate)} • ${show.showTime} • <i class="fas fa-tag"></i> ${formatCurrency(show.price)} per seat`;
+        renderSeatMap(show, currentlySelectedSeats);
+        const seatModal = new bootstrap.Modal(document.getElementById('seatModal'));
+        seatModal.show();
+    }
+
+    // Final checkout: reserve selected seats, update DB & persistence, refresh UI
+    function checkoutReservation() {
+        if(!selectedShowForModal) return;
+        if(currentlySelectedSeats.length === 0) {
+            document.getElementById("seatError").innerText = "❌ Please select at least one seat before checkout.";
+            return;
+        }
+        const show = selectedShowForModal;
+        const occupiedSet = getOccupiedSeatsForShow(show.id);
+        // validate none of selected seats are already occupied (double-check)
+        const conflict = currentlySelectedSeats.some(seat => occupiedSet.has(seat));
+        if(conflict) {
+            showToast("Some seats just got booked, please refresh selection.", "danger");
+            // reseat map refresh
+            renderSeatMap(show, currentlySelectedSeats.filter(s => !occupiedSet.has(s)));
+            currentlySelectedSeats = currentlySelectedSeats.filter(s => !occupiedSet.has(s));
+            if(currentlySelectedSeats.length === 0) document.getElementById("seatError").innerText = "Selected seats no longer available, pick new ones.";
+            return;
+        }
+        // add to reserved map
+        if(!reservedSeatsMap[show.id]) reservedSeatsMap[show.id] = [];
+        currentlySelectedSeats.forEach(seat => {
+            if(!reservedSeatsMap[show.id].includes(seat)) {
+                reservedSeatsMap[show.id].push(seat);
+            }
+        });
+        // update available seats count
+        const newOccupiedCount = reservedSeatsMap[show.id].length;
+        show.availableSeats = show.totalSeats - newOccupiedCount;
+        // update in SHOWS_DB reference
+        const showIndex = currentShows.findIndex(s => s.id === show.id);
+        if(showIndex !== -1) currentShows[showIndex].availableSeats = show.availableSeats;
+        persistReservedSeats();
+
+        // Success with ticket summary
+        const totalPrice = currentlySelectedSeats.length * show.price;
+        showToast(`🎉 Booking confirmed! ${currentlySelectedSeats.length} seat(s) for ${currentMovie.title} at ${show.showTime}. Total: ${formatCurrency(totalPrice)}. Enjoy the movie!`, "success");
+
+        // close modal
+        const modalEl = document.getElementById('seatModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if(modalInstance) modalInstance.hide();
+
+        // Re-render shows list to reflect updated available seats
+        renderShowsList(currentShows, currentMovie);
+    }
+
+    // Render shows section
+    function renderShowsList(shows, movie) {
+        const showsContainer = document.getElementById("showsContainer");
+        if(!showsContainer) return;
+        if(!shows || shows.length === 0) {
+            showsContainer.innerHTML = `<div class="text-center py-5 glass-card"><i class="fas fa-calendar-times fa-3x"></i><h5 class="mt-3">No shows available</h5></div>`;
+            return;
+        }
+        showsContainer.innerHTML = shows.map(show => `
+            <div class="show-card" data-show-id="${show.id}">
+                <div class="row align-items-center">
+                    <div class="col-md-3 col-12 mb-2 mb-md-0"><i class="fas fa-calendar-alt text-primary me-2"></i> ${formatDate(show.showDate)}</div>
+                    <div class="col-md-2 col-6"><i class="fas fa-clock text-primary me-2"></i> ${show.showTime}</div>
+                    <div class="col-md-2 col-6"><i class="fas fa-tag text-primary me-2"></i> <span class="text-success fw-bold">${formatCurrency(show.price)}</span></div>
+                    <div class="col-md-3 col-7"><i class="fas fa-chair text-primary me-2"></i> <strong>${show.availableSeats}</strong> / ${show.totalSeats} seats left</div>
+                    <div class="col-md-2 col-5 text-end"><button class="btn btn-orange btn-sm w-100 select-seat-btn" data-show-id="${show.id}"><i class="fas fa-couch me-1"></i> Pick Seats</button></div>
+                </div>
+            </div>
+        `).join('');
+
+        // attach event listeners to each "Pick Seats" button
+        document.querySelectorAll('.select-seat-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const showId = parseInt(btn.getAttribute('data-show-id'));
+                const showObj = currentShows.find(s => s.id === showId);
+                if(showObj) {
+                    if(showObj.availableSeats <= 0) {
+                        showToast("Sorry, this show is sold out!", "danger");
+                        return;
+                    }
+                    openSeatSelectionModal(showObj);
+                }
             });
         });
     }
 
-    loadMovie();
+    // Load movie & shows simulation
+    function loadMovieAndShows() {
+        const idParam = getUrlParam('id');
+        let movieId = idParam ? parseInt(idParam) : 101; // default Dune
+        currentMovie = MOVIES_DB.find(m => m.id === movieId);
+        if(!currentMovie) {
+            // fallback
+            currentMovie = MOVIES_DB[0];
+        }
+        // get shows for this movie
+        currentShows = SHOWS_DB.filter(s => s.movieId === currentMovie.id).map(show => ({ ...show }));
+        // sync exact availability with reserved seats map
+        currentShows.forEach(show => {
+            const occupiedCount = (reservedSeatsMap[show.id] || []).length;
+            show.availableSeats = Math.max(0, show.totalSeats - occupiedCount);
+        });
+
+        // Build main UI
+        const movieHtml = `
+            <div class="movie-hero">
+                <div class="row g-4">
+                    <div class="col-md-3 text-center">
+                        <div class="movie-poster-large">
+                            ${currentMovie.posterUrl ? `<img src="${currentMovie.posterUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:1rem;" onerror="this.src='https://placehold.co/300x450?text=No+Poster'">` : `<i class="fas fa-film" style="font-size:5rem;color:#f97316;"></i>`}
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h1 class="display-4 fw-bold">${escapeHtml(currentMovie.title)}</h1>
+                        <div class="text-warning mb-3">${renderStars(currentMovie.rating || 0)} <span class="text-white-50">(${currentMovie.rating}/5)</span></div>
+                        <p class="text-white-50 lead">${escapeHtml(currentMovie.description)}</p>
+                        <div class="info-grid">
+                            <div class="info-item"><i class="fas fa-clock text-primary"></i><div class="text-white fw-bold">${currentMovie.duration} min</div><small>Duration</small></div>
+                            <div class="info-item"><i class="fas fa-tag text-primary"></i><div class="text-white fw-bold">${currentMovie.genre}</div><small>Genre</small></div>
+                            <div class="info-item"><i class="fas fa-language text-primary"></i><div class="text-white fw-bold">${currentMovie.language}</div><small>Language</small></div>
+                            <div class="info-item"><i class="fas fa-calendar text-primary"></i><div class="text-white fw-bold">${formatDate(currentMovie.releaseDate)}</div><small>Release</small></div>
+                        </div>
+                        ${currentMovie.trailerUrl ? `<button class="btn btn-outline-primary mt-3" id="trailerBtn"><i class="fas fa-play me-2"></i>Watch Trailer</button>` : ''}
+                    </div>
+                </div>
+            </div>
+            <h3 class="mb-4"><i class="fas fa-ticket-alt text-primary me-2"></i> Select a Show & Choose Your Seats</h3>
+            <div id="showsContainer"></div>
+            <div class="alert alert-dark mt-4 text-center border-secondary"><i class="fas fa-info-circle me-2"></i> Click "Pick Seats" → choose your favourite spots → <strong class="text-warning">CHECK OUT THIS MOVIE</strong> to confirm booking instantly.</div>
+        `;
+        document.getElementById("movieContent").innerHTML = movieHtml;
+        renderShowsList(currentShows, currentMovie);
+
+        // trailer event
+        const trailerBtn = document.getElementById("trailerBtn");
+        if(trailerBtn && currentMovie.trailerUrl) {
+            trailerBtn.addEventListener("click", () => {
+                let url = currentMovie.trailerUrl;
+                let videoId = "";
+                if(url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1]?.split("?")[0];
+                else if(url.includes("watch?v=")) videoId = url.split("v=")[1]?.split("&")[0];
+                if(videoId) window.open(`https://www.youtube.com/embed/${videoId}`, "_blank");
+                else window.open(url, "_blank");
+            });
+        }
+    }
+
+    // Initialize global event listener for checkout button
+    function bindCheckoutListener() {
+        const checkoutBtnElem = document.getElementById("checkoutBtn");
+        if(checkoutBtnElem) {
+            // remove existing listeners
+            const newBtn = checkoutBtnElem.cloneNode(true);
+            checkoutBtnElem.parentNode.replaceChild(newBtn, checkoutBtnElem);
+            newBtn.addEventListener("click", () => {
+                checkoutReservation();
+            });
+        } else {
+            setTimeout(bindCheckoutListener, 200);
+        }
+    }
+
+    // Also modal close reset selected seats
+    document.addEventListener("DOMContentLoaded", () => {
+        loadReservedSeats();   // init localStorage reservation
+        loadMovieAndShows();
+        setTimeout(bindCheckoutListener, 400);
+        // reset seat selection when modal hidden
+        const seatModalEl = document.getElementById('seatModal');
+        seatModalEl.addEventListener('hidden.bs.modal', () => {
+            currentlySelectedSeats = [];
+            selectedShowForModal = null;
+        });
+
+        // optional refresh after any external changes
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'cinebook_reserved_seats') {
+                loadReservedSeats();
+                loadMovieAndShows();
+            }
+        });
+
+        // user status dummy
+        document.getElementById("userStatusBtn")?.addEventListener("click", () => showToast("Logged in as Cinephile • Ready to book!", "info"));
+    });
+
+    // Expose helper to avoid undefined
+    window.bookShowFallback = null;
 </script>
+<script src="js/movie_booking.js"></script>
+<!-- toast container dynamic -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
 </body>
 </html>
